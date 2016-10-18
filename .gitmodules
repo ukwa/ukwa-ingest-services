@@ -1,0 +1,15 @@
+[submodule "python-shepherd"]
+	path = python-shepherd
+	url = https://github.com/ukwa/python-shepherd.git
+[submodule "ukwa-heritrix-lbs"]
+	path = ukwa-heritrix-lbs
+	url = https://github.com/ukwa/docker-heritrix.git
+[submodule "openwayback"]
+	path = openwayback
+	url = https://github.com/ukwa/docker-openwayback.git
+[submodule "webrender-phantomjs"]
+	path = webrender-phantomjs
+	url = https://github.com/ukwa/webrender-phantomjs.git
+[submodule "w3act"]
+	path = w3act
+	url = https://github.com/ukwa/w3act.git
