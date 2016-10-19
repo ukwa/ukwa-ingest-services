@@ -1,8 +1,6 @@
 # UKWA Heritrix
 ukwa-heritrix-lbs:
   build: ukwa-heritrix-lbs
-  volumes:
-    - ./testing/jobs:/jobs
   ports:
     - "8443:8443"
 #  environment:
@@ -10,6 +8,9 @@ ukwa-heritrix-lbs:
   links:
     - clamd
     - amqp
+    - webrender
+    - acid.matkelly.com
+    - crawl-test-site
   volumes_from:
     - dvc:rw
 
@@ -20,6 +21,7 @@ dvc:
   volumes:
     - ./testing/output:/heritrix/output
     - ./testing/images:/images
+    - ./testing/jobs:/jobs
 # Hard links seem to have issues when using mapped state, but likely only on docker-machine on OS X:
 #    - ./state:/heritrix/state
 
@@ -42,11 +44,14 @@ amqp:
 # TODO pick up proxy from the environment
 webrender:
   build: webrender-phantomjs
+  environment:
+    - "PHANTOMJS_BINARY=/opt/phantomjs/bin/phantomjs"
+    - "WARCPROX=warcprox:8000"
   ports:
-    - "5000:5000"
+    - "8010:8010"
   links:
-    - openwayback
     - warcprox
+#    - openwayback
 
 # WARC Proxy
 warcprox:
@@ -55,7 +60,10 @@ warcprox:
   ports:
     - "8000:8000"
   volumes:
-    - ./output/warcs:/output/warcs
+    - ./testing/output/wren:/output/warcs
+  links:
+    - acid.matkelly.com
+    - crawl-test-site
   ulimits:
     nproc: 65535 # We need to set this, because the default is '-1' which warcprox uses and then *no threads* are created! See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
 
@@ -74,6 +82,7 @@ shepherd:
     - "PYTHONUNBUFFERED=TRUE"
   links:
     - amqp
+    - ukwa-heritrix-lbs
     - cdxserver
     - webrender
     - hadoop
@@ -86,6 +95,7 @@ shepherd:
 # tinycdxserver
 cdxserver:
   image: ukwa/tinycdxserver
+  command: "/usr/lib/jvm/java-8-oracle/bin/java -jar tinycdxserver/tinycdxserver.jar -v -d /cdx-data -p 8080"
   ports:
     - "9090:8080"
 # Alternative command to enable verbose logging
@@ -143,7 +153,7 @@ w3act:
 
 # Local version of the Archival Acid Test: http://acid.matkelly.com
 acid.matkelly.com:
-  build: ../acid-crawl/archival-acid-test
+  build: ./acid-crawl/archival-acid-test
   ports:
     - "180:80"
 
@@ -151,6 +161,6 @@ acid.matkelly.com:
 crawl-test-site:
   image: jekyll/jekyll
   volumes:
-    - ../acid-crawl/crawl-test-site:/srv/jekyll
+    - ./acid-crawl/crawl-test-site:/srv/jekyll
   ports:
     - "280:4000"

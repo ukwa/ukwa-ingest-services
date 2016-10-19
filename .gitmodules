@@ -13,3 +13,6 @@
 [submodule "w3act"]
 	path = w3act
 	url = https://github.com/ukwa/w3act.git
+[submodule "acid-crawl"]
+	path = acid-crawl
+	url = https://github.com/ukwa/acid-crawl.git
