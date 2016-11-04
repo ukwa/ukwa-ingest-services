@@ -11,6 +11,8 @@ ukwa-heritrix-lbs:
     - webrender
     - acid.matkelly.com
     - crawl-test-site
+#  volumes:
+#    - ~/.m2/:/root/.m2/ # Mount the Maven dependencies cache so it doesn't take forever to get going.
   volumes_from:
     - dvc:rw
 
@@ -20,7 +22,7 @@ dvc:
   image: busybox
   volumes:
     - ./testing/output:/heritrix/output
-    - ./testing/images:/images
+    - ./testing/wren:/heritrix/wren
     - ./testing/jobs:/jobs
 # Hard links seem to have issues when using mapped state, but likely only on docker-machine on OS X:
 #    - ./state:/heritrix/state
@@ -53,19 +55,19 @@ webrender:
     - warcprox
 #    - openwayback
 
-# WARC Proxy
+# WARC Proxy, with de-duplication disabled:
 warcprox:
   image: ukwa/warcprox
-  command: "warcprox -b 0.0.0.0 -d /output/warcs --base32 -z --rollover-idle-time 3600"
+  command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 -z --rollover-idle-time 3600 -j /dev/null"
   ports:
     - "8000:8000"
-  volumes:
-    - ./testing/output/wren:/output/warcs
   links:
     - acid.matkelly.com
     - crawl-test-site
   ulimits:
     nproc: 65535 # We need to set this, because the default is '-1' which warcprox uses and then *no threads* are created! See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
+  volumes_from:
+    - dvc:rw
 
 
 # Other daemons and processes that coordinate the crawl
@@ -87,10 +89,11 @@ shepherd:
     - webrender
     - hadoop
     - w3act
+  ports:
+    - "5001:8000"
+    - "5082:8082"
   volumes_from:
     - dvc:rw
-  ports:
-    - "5001:5001"
 
 # tinycdxserver
 cdxserver:
@@ -124,8 +127,9 @@ openwayback:
 
 # PDF to HTML service
 pdf2htmlex:
-#  image: ukwa/pdf2htmlex
   image: ukwa/pdf2htmlex
+  links:
+    - openwayback
 #  ports:
 #    - "5000:5000"
 
@@ -145,8 +149,9 @@ w3act:
     - "9000:9000"
   volumes:
     - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going.
-#  links:
-#    - openwayback
+  links:
+    - openwayback
+    - pdf2htmlex
 #    - postgres
 
 # Test sites
