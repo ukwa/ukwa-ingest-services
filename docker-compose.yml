@@ -1,171 +1,185 @@
-# UKWA Heritrix
-ukwa-heritrix-lbs:
-  build: ukwa-heritrix-lbs
-  ports:
-    - "8443:8443"
-#  environment:
-#    - "MONITRIX_ENABLED=1"
-  links:
-    - clamd
-    - amqp
-    - webrender
-    - acid.matkelly.com
-    - crawl-test-site
-#  volumes:
-#    - ~/.m2/:/root/.m2/ # Mount the Maven dependencies cache so it doesn't take forever to get going.
-  volumes_from:
-    - dvc:rw
+version: '2'
 
-# Data Volume Container
-# - This is the recommended way to share a data volume between containers.
-dvc:
-  image: busybox
-  volumes:
-    - ./testing/output:/heritrix/output
-    - ./testing/wren:/heritrix/wren
-    - ./testing/jobs:/jobs
-# Hard links seem to have issues when using mapped state, but likely only on docker-machine on OS X:
-#    - ./state:/heritrix/state
+services:
+  # UKWA Heritrix
+  ukwa-heritrix-lbs:
+    build: ukwa-heritrix-lbs
+    ports:
+      - "8443:8443"
+  #  environment:
+  #    - "MONITRIX_ENABLED=1"
+    links:
+      - clamd
+      - amqp
+      - webrender
+      - acid.matkelly.com
+      - crawl-test-site
+    volumes_from:
+      - dvc:rw  
 
-# Clamd virus scanning Service
-clamd:
-  image: ukwa/clamd
-  ports:
-    - "3310:3310"
+  # Data Volume Container for crawler job definitions and outputs
+  dvc:
+    image: busybox
+    volumes:
+      - ./testing/heritrix/output:/heritrix/output
+      - ./testing/heritrix/wren:/heritrix/wren
+      - ./testing/jobs:/jobs
 
-# RabbitMQ
-amqp:
-  image: rabbitmq:3.5-management
-  ports:
-    - "15672:15672"  # management port (guest:guest)
-    - "5672:5672"   # amqp port
-    - "25672:25672" # cluster port
-  log_driver: none
+  # Clamd virus scanning Service
+  clamd:
+    image: ukwa/clamd
+    ports:
+      - "3310:3310" 
 
-# PhantomJS web page rendering service
-# TODO pick up proxy from the environment
-webrender:
-  build: webrender-phantomjs
-  environment:
-    - "PHANTOMJS_BINARY=/opt/phantomjs/bin/phantomjs"
-    - "WARCPROX=warcprox:8000"
-  ports:
-    - "8010:8010"
-  links:
-    - warcprox
-#    - openwayback
+  # Monitrix, built on ELK by extending Logstash to support Heritrix logs.
+  monitrix:
+    image: ukwa/monitrix
+    ports:
+      - "5601:5601"
+      - "9200:9200"
+      - "5000:5000"
+      - "5044:5044" 
 
-# WARC Proxy, with de-duplication disabled:
-warcprox:
-  image: ukwa/warcprox
-  command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 -z --rollover-idle-time 3600 -j /dev/null"
-  ports:
-    - "8000:8000"
-  links:
-    - acid.matkelly.com
-    - crawl-test-site
-  ulimits:
-    nproc: 65535 # We need to set this, because the default is '-1' which warcprox uses and then *no threads* are created! See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
-  volumes_from:
-    - dvc:rw
+  # RabbitMQ
+  amqp:
+    image: rabbitmq:3.5-management
+    ports:
+      - "15672:15672"  # management port (guest:guest)
+      - "5672:5672"   # amqp port
+      - "25672:25672" # cluster port
+    logging:
+      driver: none  
 
+  # PhantomJS web page rendering service
+  webrender:
+    build: webrender-phantomjs
+    environment:
+      - "PHANTOMJS_BINARY=/opt/phantomjs/bin/phantomjs"
+      - "WARCPROX=warcprox:8000"
+    ports:
+      - "8010:8010"
+    links:
+      - warcprox
 
-# Other daemons and processes that coordinate the crawl
-shepherd:
-  build: python-shepherd
-  environment:
-    - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
-    - "QUEUE_NAME=FC-4-uris-to-index"
-    - "CDXSERVER_URL=http://cdxserver:8080/fc"
-    - "W3ACT_URL=http://w3act:9000/act/"
-    - "W3ACT_USER=wa-sysadm@bl.uk"
-    - "W3ACT_PW=sysAdmin"
-    - "WAYBACK_URL=http://localhost:8080/wayback"
-    - "PYTHONUNBUFFERED=TRUE"
-  links:
-    - amqp
-    - ukwa-heritrix-lbs
-    - cdxserver
-    - webrender
-    - hadoop
-    - w3act
-  ports:
-    - "5001:8000"
-    - "5082:8082"
-  volumes_from:
-    - dvc:rw
+  # WARC Proxy, with de-duplication disabled and a rapid rollover:
+  warcprox:
+    image: ukwa/warcprox
+    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 -z --rollover-idle-time 60 -j /dev/null"
+    ports:
+      - "8000:8000"
+    links:
+      - acid.matkelly.com
+      - crawl-test-site
+    ulimits:
+      nproc: 65535 # We need to set this, because the default is '-1' which warcprox uses and then *no threads* are created! See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
+    volumes_from:
+      - dvc:rw  
+  
 
-# tinycdxserver
-cdxserver:
-  image: ukwa/tinycdxserver
-  command: "/usr/lib/jvm/java-8-oracle/bin/java -jar tinycdxserver/tinycdxserver.jar -v -d /cdx-data -p 8080"
-  ports:
-    - "9090:8080"
-# Alternative command to enable verbose logging
-#  command: "/usr/lib/jvm/java-8-oracle/bin/java -jar tinycdxserver/tinycdxserver.jar -v -d /cdx-data -p 8080"
-# I don't think this works on dev systems - should be fine in live.
-#  volumes:
-#    - ./cdx:/data
-#  volumes:
-#    - /heritrix/cdx:/data
+  # Other daemons and processes that coordinate the crawl
+  shepherd:
+    build: python-shepherd
+    environment:
+      - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
+      - "QUEUE_NAME=FC-4-uris-to-index"
+      - "CDXSERVER_URL=http://cdxserver:8080/fc"
+      - "W3ACT_URL=http://w3act:9000/act/"
+      - "W3ACT_USER=wa-sysadm@bl.uk"
+      - "W3ACT_PW=sysAdmin"
+      - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "PYTHONUNBUFFERED=TRUE"
+    links:
+      - amqp
+      - ukwa-heritrix-lbs
+      - cdxserver
+      - webrender
+      - hadoop
+      - w3act
+      - openwayback
+      - monitrix
+    ports:
+      - "5001:8000"
+      - "5082:8082"
+    volumes_from:
+      - dvc:rw  
 
-# OpenWayback, based loosely on UNB Libraries Dockerfile
-openwayback:
-  build: openwayback
-  ports:
-    - "9080:8080"
-    - "8090:8090"
-  environment:
-    - "WAYBACK_BASEDIR=/data"
-    - "WAYBACK_URL_HOST=localhost"
-    - "WAYBACK_URL_PREFIX=http://localhost:9080"
-    - "CDX_INDEX_SERVER=http://cdxserver:8080/fc"
-  links:
-    - cdxserver
-  volumes_from:
-    - dvc:ro
+  # tinycdxserver
+  cdxserver:
+    image: ukwa/tinycdxserver # use :0.3.2 for old version
+    command: "/usr/lib/jvm/java-8-oracle/bin/java -jar outbackcdx/outbackcdx.jar -v -d /cdx-data -p 8080 -b 0.0.0.0"
+    ports:
+      - "9090:8080"
+  #  volumes:
+  #    - ./testing/cdx:/cdx-data
 
-# PDF to HTML service
-pdf2htmlex:
-  image: ukwa/pdf2htmlex
-  links:
-    - openwayback
-#  ports:
-#    - "5000:5000"
+  # OpenWayback, based loosely on UNB Libraries Dockerfile
+  openwayback:
+    build: openwayback
+    ports:
+      - "9080:8080"
+      - "8090:8090"
+    environment:
+      - "WAYBACK_BASEDIR=/data"
+      - "WAYBACK_URL_HOST=localhost"
+      - "WAYBACK_URL_PREFIX=http://openwayback:8080"
+      - "CDX_INDEX_SERVER=http://cdxserver:8080/fc"
+    links:
+      - cdxserver
+      - hadoop
+    volumes_from:
+      - dvc:ro  
 
-# A single-node Hadoop and HDFS instance
-hadoop:
-  image: sequenceiq/hadoop-docker:2.7.0
-  command: "/etc/bootstrap.sh -d"
-  ports:
-    - "50070:50070"
-    - "50075:50075"
-  hostname: hadoop
+  # PDF to HTML service
+  pdf2htmlex:
+    image: ukwa/pdf2htmlex
+    links:
+      - openwayback
+  #  ports:
+  #    - "5000:5000"  
 
-# W3ACT (build in place and run)
-w3act:
-  build: w3act
-  ports:
-    - "9000:9000"
-  volumes:
-    - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going.
-  links:
-    - openwayback
-    - pdf2htmlex
-#    - postgres
+  # A single-node Hadoop and HDFS instance
+  # Volumes are used to share job JARs, but also to give the system some headroom.
+  hadoop:
+    image: sequenceiq/hadoop-docker:2.7.0
+    command: "/etc/bootstrap.sh -d"
+    ports:
+      - "50070:50070"
+      - "50075:50075"
+      - "8088:8088"
+      - "8042:8042"
+    hostname: hadoop
+    volumes:
+      - "./python-shepherd/tasks/jars:/jars"
+      - "./testing/hadoop-root-nm-local-dir:/tmp/hadoop-root/nm-local-dir"
+      - "./testing/hadoop-userlogs:/usr/local/hadoop/logs/userlogs" 
 
-# Test sites
+  # W3ACT (build in place and run)
+  w3act:
+    build: w3act
+    ports:
+      - "9000:9000"
+    volumes:
+      - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going every time, downloading dependencies
+    links:
+      - openwayback
+      - pdf2htmlex
+  #    - postgres 
 
-# Local version of the Archival Acid Test: http://acid.matkelly.com
-acid.matkelly.com:
-  build: ./acid-crawl/archival-acid-test
-  ports:
-    - "180:80"
+  # ----------
+  # Test sites
+  # ----------
 
-# Local version of the UKWA test site: http://data.webarchive.org.uk/crawl-test-site/
-crawl-test-site:
-  image: jekyll/jekyll
-  volumes:
-    - ./acid-crawl/crawl-test-site:/srv/jekyll
-  ports:
-    - "280:4000"
+  # Local version of the Archival Acid Test: http://acid.matkelly.com
+  acid.matkelly.com:
+    build: ./acid-crawl/archival-acid-test
+    ports:
+      - "180:80"  
+
+  # Local version of the UKWA test site: http://data.webarchive.org.uk/crawl-test-site/
+  crawl-test-site:
+    image: jekyll/jekyll
+    volumes:
+      - ./acid-crawl/crawl-test-site:/srv/jekyll
+    ports:
+      - "280:4000"
+

@@ -1,0 +1,91 @@
+version: '2'
+
+services:
+  # UKWA DC Heritrixen
+  ukwa-h3-dc-1:
+    build: ../ukwa-heritrix-lbs
+    ports:
+      - "8443:8443"
+    links:
+      - clamd
+      - amqp
+      - webrender
+    volumes:
+      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
+    volumes_from:
+      - dvc:rw
+
+  ukwa-h3-dc-2:
+    build: ../ukwa-heritrix-lbs
+    ports:
+      - "8444:8443"
+    links:
+      - clamd
+      - amqp
+      - webrender
+    volumes:
+      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
+    volumes_from:
+      - dvc:rw
+
+  ukwa-h3-dc-3:
+    build: ../ukwa-heritrix-lbs
+    ports:
+      - "8445:8443"
+    links:
+      - clamd
+      - amqp
+      - webrender
+    volumes:
+      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
+    volumes_from:
+      - dvc:rw
+  
+  ukwa-h3-dc-4:
+    build: ../ukwa-heritrix-lbs
+    ports:
+      - "8446:8443"
+    links:
+      - clamd
+      - amqp
+      - webrender
+    volumes:
+      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
+    volumes_from:
+      - dvc:rw  
+
+  # Data Volume Container for the shared data:
+  dvc:
+    image: busybox
+    volumes:
+      - ./testing-dc/jobs:/jobs
+
+  # Clamd virus scanning Service
+  clamd:
+    image: ukwa/clamd
+
+  # RabbitMQ
+  amqp:
+    image: rabbitmq:3.5-management
+    ports:
+      - "15672:15672"  # management port (guest:guest)
+    logging:
+      driver: none  
+
+  # PhantomJS web page rendering service
+  webrender:
+    build: ../webrender-phantomjs
+    environment:
+      - "PHANTOMJS_BINARY=/opt/phantomjs/bin/phantomjs"
+      - "WARCPROX=warcprox:8000"
+    links:
+      - warcprox
+
+  # WARC Proxy, with de-duplication disabled and a rapid rollover:
+  warcprox:
+    image: ukwa/warcprox
+    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 -z --rollover-idle-time 60 -j /dev/null"
+    ulimits:
+      nproc: 65535 # We need to set this, because the default is '-1' which warcprox uses and then *no threads* are created! See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
+    volumes_from:
+      - dvc:rw  
