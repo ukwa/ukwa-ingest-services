@@ -4,10 +4,11 @@ services:
   # UKWA Heritrix
   ukwa-heritrix-lbs:
     build: ukwa-heritrix-lbs
+    #hostname: ukwa-h3-fc
     ports:
       - "8443:8443"
-  #  environment:
-  #    - "MONITRIX_ENABLED=1"
+    #environment:
+    #  - "MONITRIX_ENABLED=1"
     links:
       - clamd
       - amqp

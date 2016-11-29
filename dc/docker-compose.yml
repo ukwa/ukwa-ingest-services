@@ -3,6 +3,7 @@ version: '2'
 services:
   # UKWA DC Heritrixen
   ukwa-h3-dc-1:
+    hostname: ukwa-h3-dc-1
     build: ../ukwa-heritrix-lbs
     ports:
       - "8443:8443"
@@ -10,6 +11,8 @@ services:
       - clamd
       - amqp
       - webrender
+    environment:
+      - "H3_QUEUE_NAME=ukwa-h3-dc-1"
     volumes:
       - ./testing-dc/dc-4/heritrix/output:/heritrix/output
     volumes_from:
@@ -23,6 +26,8 @@ services:
       - clamd
       - amqp
       - webrender
+    environment:
+      - "H3_QUEUE_NAME=ukwa-h3-dc-2"
     volumes:
       - ./testing-dc/dc-4/heritrix/output:/heritrix/output
     volumes_from:
@@ -36,6 +41,8 @@ services:
       - clamd
       - amqp
       - webrender
+    environment:
+      - "H3_QUEUE_NAME=ukwa-h3-dc-3"
     volumes:
       - ./testing-dc/dc-4/heritrix/output:/heritrix/output
     volumes_from:
@@ -49,6 +56,8 @@ services:
       - clamd
       - amqp
       - webrender
+    environment:
+      - "H3_QUEUE_NAME=ukwa-h3-dc-4"
     volumes:
       - ./testing-dc/dc-4/heritrix/output:/heritrix/output
     volumes_from:
