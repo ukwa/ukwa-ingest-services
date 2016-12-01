@@ -3,7 +3,7 @@ version: '2'
 services:
   # W3ACT
   w3act:
-    build: w3act
+    image: ukwa/w3act
     ports:
       - "9000:9000"
     volumes:
@@ -13,8 +13,8 @@ services:
       - pdf2htmlex
   #    - postgres
 
-  # UKWA Heritrix
-  ukwa-heritrix-lbs:
+  # UKWA Heritrix for frequent crawls
+  ukwa-heritrix-fc:
     image: ukwa/ukwa-heritrix-lbs
     #hostname: ukwa-h3-fc
     ports:
@@ -30,7 +30,7 @@ services:
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    build: python-shepherd
+    iamge: ukwa/python-shepherd
     environment:
       - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
       - "QUEUE_NAME=FC-4-uris-to-index"
@@ -42,7 +42,7 @@ services:
       - "PYTHONUNBUFFERED=TRUE"
     links:
       - amqp
-      - ukwa-heritrix-lbs
+      - ukwa-heritrix-fc
       - webrender
       - w3act
       - monitrix
@@ -87,7 +87,7 @@ services:
 
   # PhantomJS web page rendering service
   webrender:
-    build: webrender-phantomjs
+    image: ukwa/webrender-phantomjs
     environment:
       - "PHANTOMJS_BINARY=/opt/phantomjs/bin/phantomjs"
       - "WARCPROX=warcprox:8000"
