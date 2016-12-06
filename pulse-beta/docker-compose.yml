@@ -108,7 +108,23 @@ services:
 
   # W3ACT
   w3act:
-    image: uwka/w3act
+    image: uwka/w3act:2.0.0-BETA-4
+    environment:
+      - "SERVER_NAME=https://beta.webarchive.org.uk"
+      - "APPLICATION_SECRET=${APPLICATION_SECRET}"
+      - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
+      - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
+      - "DB_DRIVER=org.postgresql.Driver"
+      - "DB_URI=postgres://training:training@psql.beta.wa.bl.uk/w3act"
+      - "USE_TEST_DATA=false"
+      - "ENABLE_DDHAPT=true"
+      - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
+      - "SMTP_SERVER=juno.bl.uk"
+      - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "MONITRIX_URI=http://monitrix:5601/app/kibana"
+      - "PDFTOHTMLEX_UR=http://pdf2htmlex:5000/convert?url="
+      - "AMQP_HOST=amqp"
+      - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
     ports:
       - "9000:9000"
     links:

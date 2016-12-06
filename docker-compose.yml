@@ -159,12 +159,30 @@ services:
     build: w3act
     ports:
       - "9000:9000"
-    volumes:
-      - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going every time, downloading dependencies
+    environment:
+      - "SERVER_NAME=http://localhost:9000"
+      - "APPLICATION_SECRET=E27D^[_<Lpt0vjad]de;3/i;tx3gpRmG4Byof/3nahO/dIo9gbsMWut1w3xg[>9W"
+      - "SECRET_SERVER_USER=none"
+      - "SECRET_SERVER_PASSWORD=none"
+      - "DB_DRIVER=org.h2.Driver"
+      - "DB_URI=jdbc:h2:mem:play;DB_CLOSE_DELAY=-1"
+      - "USE_TEST_DATA=true"
+      - "ENABLE_EVOLUTIONS=enabled"
+      - "APPLY_EVOLUTIONS=true"
+      - "ENABLE_DDHAPT=true"
+      - "PII_URI=http://w3act:9000/act/pii/vdc"
+      - "SMTP_SERVER=dummy.host"
+      - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "MONITRIX_URI=http://monitrix:5601/app/kibana"
+      - "PDFTOHTMLEX_UR=http://pdf2htmlex:5000/convert?url="
+      - "AMQP_HOST=amqp"
+      - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
     links:
       - openwayback
       - pdf2htmlex
   #    - postgres 
+    volumes:
+      - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going every time, downloading dependencies
 
   # ----------
   # Test sites
