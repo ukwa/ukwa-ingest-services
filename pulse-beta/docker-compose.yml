@@ -36,7 +36,7 @@ services:
 
   # PhantomJS web page rendering service
   webrender:
-    image: webrender-phantomjs:2.0.0
+    image: ukwa/webrender-phantomjs:2.0.0
     environment:
       - "WARCPROX=warcprox:8000"
     ports:
