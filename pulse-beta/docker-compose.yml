@@ -6,31 +6,30 @@ services:
     image: ukwa/heritrix
     hostname: ukwa-h3-pulse-daily
     ports:
-      - "8443:8443"
+      - "${INTERNAL_IP}:8443:8443"
     environment:
       - "HERITRIX_USER=${HERITRIX_USER}"
       - "HERITRIX_PW=${HERITRIX_PASSWORD}"
     #  - "MONITRIX_ENABLED=1"
     links:
-      - clamd
       - amqp
       - webrender
     volumes:
-      - jobs:/heritrix/jobs
-      - output:/heritrix/output
+      - /zfspool/heritrix/jobs:/heritrix/jobs
+      - /zfspool/heritrix/output:/heritrix/output
 
 
   # Monitrix, built on ELK by extending Logstash to support Heritrix logs.
   monitrix:
     image: ukwa/monitrix
     ports:
-      - "5601:5601"
+      - "${INTERNAL_IP}:5601:5601"
 
   # RabbitMQ
   amqp:
     image: rabbitmq:3.5-management
     ports:
-      - "15672:15672"  # management port (guest:guest)
+      - "${INTERNAL_IP}:15672:15672"  # management port (guest:guest)
     logging:
       driver: none  
 
@@ -39,8 +38,8 @@ services:
     image: ukwa/webrender-phantomjs:2.0.0
     environment:
       - "WARCPROX=warcprox:8000"
-    ports:
-      - "8010:8010"
+#    ports:
+#      - "${INTERNAL_IP}:8010:8010"
     links:
       - warcprox
 
@@ -48,26 +47,26 @@ services:
   warcprox:
     image: ukwa/warcprox
     command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 -z --rollover-idle-time 60 -j /dev/null"
-    ports:
-      - "8000:8000"
+#    ports:
+#      - "${INTERNAL_IP}:8000:8000"
     links:
       - openwayback
     ulimits:
       nproc: 65535 # See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
     volumes:
-      - wren:/heritrix/wren
+      - /zfspool/heritrix/wren:/heritrix/wren
   
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/python-shepherd
+    image: ukwa/shepherd
     environment:
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
-      - "W3ACT_URL=https://beta.webarchive.org.uk/act/"
+      - "W3ACT_URL=https://dev.webarchive.org.uk/act/"
       - "HERITRIX_USER=${HERITRIX_USER}"
       - "HERITRIX_PW=${HERITRIX_PASSWORD}"
-      - "CDXSERVER_URL=http://bigcdx.wa.bl.uk:8080/act2-beta"
+      - "CDXSERVER_URL=http://192.168.45.21:8080/ddhapt-beta"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
       - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
       - "QUEUE_NAME=FC-4-uris-to-index"
@@ -75,30 +74,29 @@ services:
     links:
       - amqp
       - ukwa-heritrix-daily
-      - cdxserver
       - webrender
       - w3act
       - openwayback
       - monitrix
-    ports:
-      - "5001:8000"
-      - "5082:8082"
+#    ports:
+#      - "${INTERNAL_IP}:5001:8000"
+#      - "${INTERNAL_IP}:5082:8082"
     volumes:
-      - jobs:/heritrix/jobs
-      - output:/heritrix/output
-      - wren:/heritrix/wren
+      - /zfspool/heritrix/jobs:/heritrix/jobs
+      - /zfspool/heritrix/output:/heritrix/output
+      - /zfspool/heritrix/wren:/heritrix/wren
 
 
   # OpenWayback, based loosely on UNB Libraries Dockerfile
   openwayback:
     image: ukwa/openwayback
     ports:
-      - "9080:8080"
-      - "8090:8090"
+      - "${INTERNAL_IP}:9080:8080"
+#      - "${INTERNAL_IP}:8090:8090"
     environment:
-      - "WAYBACK_URL_PREFIX=https://beta.webarchive.org.uk/act/wayback"
-      - "CDX_INDEX_SERVER=http://bigcdx.wa.bl.uk:8080/act2-beta"
-      - "WEBHDFS_PREFIX=http://hadoop.ddb.wa.bl.uk:14000/v1/webhdfs"
+      - "WAYBACK_URL_PREFIX=http://192.168.45.16:8080/act/wayback"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/act2-beta"
+      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/v1/webhdfs"
 
   # PDF to HTML service
   pdf2htmlex:
@@ -108,14 +106,14 @@ services:
 
   # W3ACT
   w3act:
-    image: uwka/w3act:2.0.0-BETA-4
+    image: ukwa/w3act:2.0.0-BETA-5
     environment:
-      - "SERVER_NAME=https://beta.webarchive.org.uk"
+      - "SERVER_NAME=https://dev.webarchive.org.uk"
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
       - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
       - "DB_DRIVER=org.postgresql.Driver"
-      - "DB_URI=postgres://training:training@psql.beta.wa.bl.uk/w3act"
+      - "DB_URI=postgres://training:@192.168.45.82/w3act"
       - "USE_TEST_DATA=false"
       - "ENABLE_DDHAPT=true"
       - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
@@ -126,15 +124,15 @@ services:
       - "AMQP_HOST=amqp"
       - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
     ports:
-      - "9000:9000"
+      - "${INTERNAL_IP}:9000:9000"
     links:
       - openwayback
       - pdf2htmlex
 
-volumes:
+#volumes:
   # The location where we store the job data:
-  - jobs:
+#  - /zfspool/heritrix/jobs:/zfspool/heritrix/jobs
   # The main crawler output location:
-  - output:
+#  - /zfspool/heritrix/output:/zfspool/heritrix/output
   # Temporary output location for rendering pages:
-  - wren:
+#  - /zfspool/heritrix/wren:/zfspool/heritrix/wren
