@@ -113,7 +113,7 @@ services:
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
       - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
       - "DB_DRIVER=org.postgresql.Driver"
-      - "DB_URI=postgres://training:@192.168.45.82/w3act"
+      - "DB_URI=postgres://training:training@192.168.45.82/w3act"
       - "USE_TEST_DATA=false"
       - "ENABLE_DDHAPT=true"
       - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
