@@ -120,7 +120,7 @@ services:
       - "SMTP_SERVER=juno.bl.uk"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
       - "MONITRIX_URI=http://monitrix:5601/app/kibana"
-      - "PDFTOHTMLEX_UR=http://pdf2htmlex:5000/convert?url="
+      - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
       - "AMQP_HOST=amqp"
       - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
     ports:
