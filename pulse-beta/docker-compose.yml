@@ -106,7 +106,7 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.0-BETA-5
+    image: ukwa/w3act:2.0.0-BETA-6
     environment:
       - "SERVER_NAME=https://dev.webarchive.org.uk"
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
