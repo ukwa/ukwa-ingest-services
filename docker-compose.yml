@@ -148,7 +148,7 @@ services:
       - "50075:50075"
       - "8088:8088"
       - "8042:8042"
-      - "9000:9000"
+      - "9001:9000"
       - "50010:50010"
     hostname: hadoop
     volumes:
@@ -176,7 +176,7 @@ services:
       - "SMTP_SERVER=dummy.host"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
       - "MONITRIX_URI=http://monitrix:5601/app/kibana"
-      - "PDFTOHTMLEX_UR=http://pdf2htmlex:5000/convert?url="
+      - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
       - "AMQP_HOST=amqp"
       - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
     links:
