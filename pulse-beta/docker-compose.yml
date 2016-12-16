@@ -123,7 +123,6 @@ services:
       - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
       - "AMQP_HOST=amqp"
       - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
-    command: "/w3act/target/universal/stage/bin/w3act -Dconfig.file=/w3act/conf/docker.conf -Dpidfile.path=/dev/null -Dhttp.proxyHost=explorer.bl.uk -Dhttp.proxyPort=3127 -Dhttps.proxyHost=explorer.bl.uk -Dhttps.proxyPort=3127 -Dhttp.nonProxyHosts=\"localhost|127.0.0.1|*.ad.bl.uk|*.wa.bl.uk|192.168.*\""
     ports:
       - "${INTERNAL_IP}:9000:9000"
     links:
