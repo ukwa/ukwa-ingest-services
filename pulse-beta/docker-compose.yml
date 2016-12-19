@@ -95,7 +95,7 @@ services:
 #      - "${INTERNAL_IP}:8090:8090"
     environment:
       - "WAYBACK_URL_PREFIX=http://192.168.45.16:8080/act/wayback"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/act2-beta"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/ddhapt-beta"
       - "WEBHDFS_PREFIX=http://192.168.45.43:14000/v1/webhdfs"
 
   # PDF to HTML service
