@@ -80,6 +80,7 @@ services:
   # Other daemons and processes that coordinate the crawl
   shepherd:
     build: python-shepherd
+    commnd: "/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf & ; pulse start daily"
     environment:
       - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
       - "QUEUE_NAME=FC-4-uris-to-index"
