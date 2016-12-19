@@ -59,7 +59,7 @@ services:
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/shepherd
+    image: ukwa/shepherd:1.0.0
     environment:
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
