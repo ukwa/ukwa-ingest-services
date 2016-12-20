@@ -1,12 +1,29 @@
 version: '2'
 
 services:
-  # UKWA Heritrix
+  # UKWA Heritrix (daily)
   ukwa-heritrix-daily:
     image: ukwa/heritrix
     hostname: ukwa-h3-pulse-daily
     ports:
       - "${INTERNAL_IP}:8443:8443"
+    environment:
+      - "HERITRIX_USER=${HERITRIX_USER}"
+      - "HERITRIX_PW=${HERITRIX_PASSWORD}"
+    #  - "MONITRIX_ENABLED=1"
+    links:
+      - amqp
+      - webrender
+    volumes:
+      - /zfspool/heritrix/jobs:/heritrix/jobs
+      - /zfspool/heritrix/output:/heritrix/output
+
+  # UKWA Heritrix (weekly)
+  ukwa-heritrix-weekly:
+    image: ukwa/heritrix
+    hostname: ukwa-h3-pulse-weekly
+    ports:
+      - "${INTERNAL_IP}:8444:8443"
     environment:
       - "HERITRIX_USER=${HERITRIX_USER}"
       - "HERITRIX_PW=${HERITRIX_PASSWORD}"
@@ -59,7 +76,7 @@ services:
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/shepherd:1.1.0
+    image: ukwa/shepherd:1.1.1
     environment:
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
