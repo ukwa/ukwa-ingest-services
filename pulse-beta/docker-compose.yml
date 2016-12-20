@@ -1,7 +1,7 @@
 version: '2'
 
 services:
-  # UKWA Heritrix
+  # UKWA Heritrix (daily)
   ukwa-heritrix-daily:
     image: ukwa/heritrix
     hostname: ukwa-h3-pulse-daily
@@ -14,10 +14,24 @@ services:
     links:
       - amqp
       - webrender
-    volumes:
-      - /zfspool/heritrix/jobs:/heritrix/jobs
-      - /zfspool/heritrix/output:/heritrix/output
+    volumes_from:
+      - dvc:rw
 
+  # UKWA Heritrix (weekly)
+  ukwa-heritrix-weekly:
+    image: ukwa/heritrix
+    hostname: ukwa-h3-pulse-weekly
+    ports:
+      - "${INTERNAL_IP}:8444:8443"
+    environment:
+      - "HERITRIX_USER=${HERITRIX_USER}"
+      - "HERITRIX_PW=${HERITRIX_PASSWORD}"
+    #  - "MONITRIX_ENABLED=1"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
 
   # Monitrix, built on ELK by extending Logstash to support Heritrix logs.
   monitrix:
@@ -53,13 +67,13 @@ services:
       - openwayback
     ulimits:
       nproc: 65535 # See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
-    volumes:
-      - /zfspool/heritrix/wren:/heritrix/wren
+    volumes_from:
+      - dvc:rw
   
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/shepherd:1.1.0
+    image: ukwa/shepherd:1.1.1
     environment:
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
@@ -91,10 +105,8 @@ services:
 #    ports:
 #      - "${INTERNAL_IP}:5001:8000"
 #      - "${INTERNAL_IP}:5082:8082"
-    volumes:
-      - /zfspool/heritrix/jobs:/heritrix/jobs
-      - /zfspool/heritrix/output:/heritrix/output
-      - /zfspool/heritrix/wren:/heritrix/wren
+    volumes_from:
+      - dvc:rw
 
 
   # OpenWayback, based loosely on UNB Libraries Dockerfile
@@ -138,6 +150,17 @@ services:
     links:
       - openwayback
       - pdf2htmlex
+
+  # Data Volume Container (as explicit volumes are not okay for production. 
+  #  not clear why, see http://serverfault.com/questions/750868/how-to-decide-between-a-docker-volume-container-and-a-docker-volume)
+  # Should probably switch to named volumes (below)
+  dvc:
+    image: busybox
+    volumes:
+      - /zfspool/heritrix/jobs:/heritrix/jobs
+      - /zfspool/heritrix/output:/heritrix/output
+      - /zfspool/heritrix/wren:/heritrix/wren
+
 
 #volumes:
   # The location where we store the job data:

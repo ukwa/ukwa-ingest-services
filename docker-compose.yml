@@ -97,6 +97,7 @@ services:
       - "WEBHDFS_PORT=50070"
       - "WEBHDFS_USER=root"
       - "WEBHDFS_PREFIX=http://hadoop:50070/webhdfs/v1"
+      - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
       - "AMQP_HOST=amqp"
       - "SLACK_TOKEN="
       - "PYTHONUNBUFFERED=TRUE"
@@ -196,6 +197,16 @@ services:
   #    - postgres 
     volumes:
       - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going every time, downloading dependencies
+
+  # Solr, based on https://hub.docker.com/_/solr/
+  solr:
+    image: ukwa/webarchive-discovery-solr
+    ports:
+      - "8983:8983"
+    #entrypoint:
+    #  - docker-entrypoint.sh
+    #  - solr-precreate
+    #  - dsicovery
 
   # ----------
   # Test sites
