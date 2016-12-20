@@ -80,15 +80,25 @@ services:
   # Other daemons and processes that coordinate the crawl
   shepherd:
     build: python-shepherd
-    commnd: "/usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf & ; pulse start daily"
     environment:
-      - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
-      - "QUEUE_NAME=FC-4-uris-to-index"
-      - "CDXSERVER_URL=http://cdxserver:8080/fc"
       - "W3ACT_URL=http://w3act:9000/act/"
       - "W3ACT_USER=wa-sysadm@bl.uk"
       - "W3ACT_PW=sysAdmin"
+      - "CDXSERVER_URL=http://cdxserver:8080/fc"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "CLAMD_HOST=clamd"
+      - "CLAMD_PORT=3310"
+      - "HERITRIX_USERNAME=heritrix"
+      - "HERITRIX_PASSWORD=heritrix"
+      - "HDFS_OUTPUT_PREFIX=/1_data/pulse"
+      - "HDFS_NAMENODE_HOST=hadoop"
+      - "HDFS_NAMENODE_PORT=50070"
+      - "HDFS_EFFECTIVE_USER=root"
+      - "WEBHDFS_PORT=50070"
+      - "WEBHDFS_USER=root"
+      - "WEBHDFS_PREFIX=http://hadoop:50070/webhdfs/v1"
+      - "AMQP_HOST=amqp"
+      - "SLACK_TOKEN="
       - "PYTHONUNBUFFERED=TRUE"
     links:
       - amqp
