@@ -59,17 +59,27 @@ services:
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/shepherd
+    image: ukwa/shepherd:1.1.0
     environment:
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
       - "W3ACT_URL=https://dev.webarchive.org.uk/act/"
-      - "HERITRIX_USER=${HERITRIX_USER}"
-      - "HERITRIX_PW=${HERITRIX_PASSWORD}"
       - "CDXSERVER_URL=http://192.168.45.21:8080/ddhapt-beta"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "CLAMD_HOST=clamd"
+      - "CLAMD_PORT=3310"
+      - "HERITRIX_USER=${HERITRIX_USER}"
+      - "HERITRIX_PW=${HERITRIX_PASSWORD}"
+      - "HDFS_OUTPUT_PREFIX=/1_data/pulse"
+      - "HDFS_NAMENODE_HOST=hadoop.ddb.wa.bl.uk"
+      - "HDFS_NAMENODE_PORT=50070"
+      - "HDFS_EFFECTIVE_USER=hdfs"
+      - "WEBHDFS_PORT=14000"
+      - "WEBHDFS_USER=hdfs"
+      - "WEBHDFS_PREFIX=http://hadoop.ddb.wa.bl.uk:14000/webhdfs/v1"
       - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
-      - "QUEUE_NAME=FC-4-uris-to-index"
+      - "AMQP_HOST=amqp"
+      - "SLACK_TOKEN="
       - "PYTHONUNBUFFERED=TRUE"
     links:
       - amqp
