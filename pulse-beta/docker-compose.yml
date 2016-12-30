@@ -2,14 +2,14 @@ version: '2'
 
 services:
   # UKWA Heritrix (daily)
-  ukwa-heritrix-daily:
+  ukwa-heritrix-daily-daily:
     image: ukwa/heritrix
     hostname: ukwa-h3-pulse-daily
     ports:
       - "${INTERNAL_IP}:8443:8443"
     environment:
       - "HERITRIX_USER=${HERITRIX_USER}"
-      - "HERITRIX_PW=${HERITRIX_PASSWORD}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
     #  - "MONITRIX_ENABLED=1"
     links:
       - amqp
@@ -25,7 +25,7 @@ services:
       - "${INTERNAL_IP}:8444:8443"
     environment:
       - "HERITRIX_USER=${HERITRIX_USER}"
-      - "HERITRIX_PW=${HERITRIX_PASSWORD}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
     #  - "MONITRIX_ENABLED=1"
     links:
       - amqp
@@ -77,13 +77,13 @@ services:
     environment:
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
-      - "W3ACT_URL=https://dev.webarchive.org.uk/act/"
+      - "W3ACT_URL=http://w3act:9000/act/"
       - "CDXSERVER_URL=http://192.168.45.21:8080/ddhapt-beta"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
       - "CLAMD_HOST=clamd"
       - "CLAMD_PORT=3310"
-      - "HERITRIX_USER=${HERITRIX_USER}"
-      - "HERITRIX_PW=${HERITRIX_PASSWORD}"
+      - "HERITRIX_USERNAME=${HERITRIX_USER}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
       - "HDFS_OUTPUT_PREFIX=/1_data/pulse"
       - "HDFS_NAMENODE_HOST=hadoop.ddb.wa.bl.uk"
       - "HDFS_NAMENODE_PORT=50070"
@@ -93,11 +93,11 @@ services:
       - "WEBHDFS_PREFIX=http://hadoop.ddb.wa.bl.uk:14000/webhdfs/v1"
       - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
       - "AMQP_HOST=amqp"
-      - "SLACK_TOKEN="
+      - "SLACK_TOKEN=${SLACK_TOKEN}"
       - "PYTHONUNBUFFERED=TRUE"
     links:
       - amqp
-      - ukwa-heritrix-daily
+      - ukwa-heritrix-daily-daily
       - webrender
       - w3act
       - openwayback
@@ -160,6 +160,7 @@ services:
       - /zfspool/heritrix/jobs:/jobs
       - /zfspool/heritrix/output:/heritrix/output
       - /zfspool/heritrix/wren:/heritrix/wren
+      - /zfspool/heritrix/task-state:/state
 
 
 #volumes:
