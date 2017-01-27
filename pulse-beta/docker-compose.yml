@@ -8,6 +8,7 @@ services:
     ports:
       - "${INTERNAL_IP}:8443:8443"
     environment:
+      - "LC_ALL=en_US.utf8"
       - "HERITRIX_USER=${HERITRIX_USER}"
       - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
     #  - "MONITRIX_ENABLED=1"
@@ -16,6 +17,8 @@ services:
       - webrender
     volumes_from:
       - dvc:rw
+    extra_hosts:
+      - "clamd:192.168.45.87"
 
   # UKWA Heritrix (weekly)
   ukwa-heritrix-weekly:
@@ -24,6 +27,7 @@ services:
     ports:
       - "${INTERNAL_IP}:8444:8443"
     environment:
+      - "LC_ALL=en_US.utf8"
       - "HERITRIX_USER=${HERITRIX_USER}"
       - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
     #  - "MONITRIX_ENABLED=1"
@@ -32,6 +36,8 @@ services:
       - webrender
     volumes_from:
       - dvc:rw
+    extra_hosts:
+      - "clamd:192.168.45.87"
 
   # Monitrix, built on ELK by extending Logstash to support Heritrix logs.
   monitrix:
@@ -52,17 +58,23 @@ services:
     image: ukwa/webrender-phantomjs:2.0.0
     environment:
       - "WARCPROX=warcprox:8000"
-#    ports:
-#      - "${INTERNAL_IP}:8010:8010"
+      - "LC_ALL=en_US.utf8"
+      - "TMP=/tmp/webrender"
+    ports:
+      - "${INTERNAL_IP}:8010:8010"
     links:
       - warcprox
+    volumes:
+      - "/zfspool/webrender-tmp:/tmp/webrender"
 
   # WARC Proxy, with de-duplication disabled and a rapid rollover:
   warcprox:
     image: ukwa/warcprox
     command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 -z --rollover-idle-time 60 -j /dev/null"
-#    ports:
-#      - "${INTERNAL_IP}:8000:8000"
+    environment:
+      - "LC_ALL=en_US.utf8"
+    ports:
+      - "${INTERNAL_IP}:8000:8000"
     links:
       - openwayback
     ulimits:
@@ -74,7 +86,9 @@ services:
   # Other daemons and processes that coordinate the crawl
   shepherd:
     image: ukwa/shepherd:1.1.1
+    command: "/launch-luigi-docker.sh"
     environment:
+      - "LC_ALL=en_US.utf8"
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
       - "W3ACT_URL=http://w3act:9000/act/"
@@ -84,13 +98,13 @@ services:
       - "CLAMD_PORT=3310"
       - "HERITRIX_USERNAME=${HERITRIX_USER}"
       - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
-      - "HDFS_OUTPUT_PREFIX=/1_data/pulse"
-      - "HDFS_NAMENODE_HOST=hadoop.ddb.wa.bl.uk"
+      - "HDFS_OUTPUT_PREFIX=/1_data/pulse/crawler07"
+      - "HDFS_NAMENODE_HOST=192.168.45.43"
       - "HDFS_NAMENODE_PORT=50070"
       - "HDFS_EFFECTIVE_USER=hdfs"
       - "WEBHDFS_PORT=14000"
       - "WEBHDFS_USER=hdfs"
-      - "WEBHDFS_PREFIX=http://hadoop.ddb.wa.bl.uk:14000/webhdfs/v1"
+      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/webhdfs/v1"
       - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
       - "AMQP_HOST=amqp"
       - "SLACK_TOKEN=${SLACK_TOKEN}"
@@ -102,9 +116,9 @@ services:
       - w3act
       - openwayback
       - monitrix
-#    ports:
+    ports:
+      - "${INTERNAL_IP}:5082:8082"
 #      - "${INTERNAL_IP}:5001:8000"
-#      - "${INTERNAL_IP}:5082:8082"
     volumes_from:
       - dvc:rw
 
@@ -114,11 +128,11 @@ services:
     image: ukwa/openwayback
     ports:
       - "${INTERNAL_IP}:9080:8080"
-#      - "${INTERNAL_IP}:8090:8090"
+      - "${INTERNAL_IP}:8090:8090"
     environment:
-      - "WAYBACK_URL_PREFIX=http://192.168.45.16:8080/act/wayback"
+      - "WAYBACK_URL_PREFIX=https://dev.webarchive.org.uk/act"
       - "CDX_INDEX_SERVER=http://192.168.45.21:8080/ddhapt-beta"
-      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/v1/webhdfs"
+      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/v1/webhdfs/1_data/pulse/crawler07"
 
   # PDF to HTML service
   pdf2htmlex:
@@ -128,7 +142,7 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.0-BETA-6
+    image: ukwa/w3act:2.0.0-BETA-7
     environment:
       - "SERVER_NAME=https://dev.webarchive.org.uk"
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
@@ -158,6 +172,8 @@ services:
     image: busybox
     volumes:
       - /zfspool/heritrix/jobs:/jobs
+      - /zfspool/heritrix/scratch:/heritrix/scratch
+      - /zfspool/heritrix/state:/heritrix/state
       - /zfspool/heritrix/output:/heritrix/output
       - /zfspool/heritrix/wren:/heritrix/wren
       - /zfspool/heritrix/task-state:/state
