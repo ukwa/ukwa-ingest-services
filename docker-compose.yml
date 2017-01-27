@@ -4,10 +4,11 @@ services:
   # UKWA Heritrix
   ukwa-heritrix-daily:
     build: ukwa-heritrix-lbs
-    hostname: ukwa-h3-pulse-daily
+    hostname: ukwa-h3-pulse
     ports:
       - "8443:8443"
-    #environment:
+    environment:
+       - "JAVA_OPTS=-Xmx2g -Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2"
     #  - "MONITRIX_ENABLED=1"
     links:
       - clamd
@@ -132,10 +133,14 @@ services:
       - "9080:8080"
       - "8090:8090"
     environment:
-      - "WAYBACK_BASEDIR=/data"
+      - "WAYBACK_HTTPFS_PREFIX=http://hadoop:50070/webhdfs/v1"
       - "WAYBACK_URL_HOST=localhost"
+      - "WAYBACK_URL_PORT=8080"
       - "WAYBACK_URL_PREFIX=http://openwayback:8080"
       - "CDX_INDEX_SERVER=http://cdxserver:8080/fc"
+      - "CDX_WHITELIST="
+      - "WAYBACK_EXCLUDE_FILE="
+      - "WAYBACK_EMBARGO=0"
     links:
       - cdxserver
       - hadoop

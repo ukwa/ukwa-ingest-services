@@ -123,16 +123,21 @@ services:
       - dvc:rw
 
 
-  # OpenWayback, based loosely on UNB Libraries Dockerfile
+  # OpenWayback for QA
   openwayback:
     image: ukwa/openwayback
     ports:
       - "${INTERNAL_IP}:9080:8080"
       - "${INTERNAL_IP}:8090:8090"
     environment:
+      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.43:14000/v1/webhdfs/1_data/pulse/crawler07"
+      - "WAYBACK_URL_HOST=localhost"
+      - "WAYBACK_URL_PORT=8080"
       - "WAYBACK_URL_PREFIX=https://dev.webarchive.org.uk/act"
       - "CDX_INDEX_SERVER=http://192.168.45.21:8080/ddhapt-beta"
-      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/v1/webhdfs/1_data/pulse/crawler07"
+      - "CDX_WHITELIST="
+      - "WAYBACK_EXCLUDE_FILE="
+      - "WAYBACK_EMBARGO=0"
 
   # PDF to HTML service
   pdf2htmlex:
