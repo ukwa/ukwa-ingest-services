@@ -2,6 +2,8 @@
 #
 # The settings below are for the 'dev' service.
 #
+version: '2'
+
 services:
 
   # Integration points:

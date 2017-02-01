@@ -2,7 +2,7 @@ version: '2'
 
 services:
   # UKWA Heritrix (daily)
-  ukwa-heritrix-daily-daily:
+  ukwa-heritrix-daily:
     image: ukwa/heritrix
     hostname: ukwa-h3-pulse-daily
     ports:
@@ -161,7 +161,7 @@ services:
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/shepherd:1.1.1
+    image: ukwa/shepherd:1.1.2
     command: "/launch-luigi-docker.sh"
     environment:
       - "LC_ALL=en_US.utf8"
@@ -179,7 +179,12 @@ services:
       - "PYTHONUNBUFFERED=TRUE"
     links:
       - amqp
-      - ukwa-heritrix-daily-daily
+      - ukwa-heritrix-daily
+      - ukwa-heritrix-weekly
+      - ukwa-heritrix-monthly
+      - ukwa-heritrix-quarterly
+      - ukwa-heritrix-sixmonthly
+      - ukwa-heritrix-annual
       - webrender
       - w3act
       - openwayback
