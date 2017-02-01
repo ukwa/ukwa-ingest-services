@@ -161,7 +161,7 @@ services:
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/shepherd:1.1.2
+    image: ukwa/shepherd:1.1.3
     command: "/launch-luigi-docker.sh"
     environment:
       - "LC_ALL=en_US.utf8"
