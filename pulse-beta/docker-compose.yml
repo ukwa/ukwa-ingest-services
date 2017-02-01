@@ -212,7 +212,7 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.0-BETA-8
+    image: ukwa/w3act:2.0.0-BETA-9
     environment:
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
