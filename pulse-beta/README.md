@@ -7,9 +7,9 @@ The base configuration is in `docker-compose.yml` and the _usual_ settings for m
 
 The _beta_ configuration is the equivalent of the _override_ but set-up for our Beta service. It can be use like this:
 
-    docker-compose -f docker-compose.yml -f docker-compose.beta.yml up -d
+    docker-compose -f docker-compose.yml -f docker-compose.beta.yml -p pulse_beta up -d
 
 Similarly, for production:
 
-    docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+    docker-compose -f docker-compose.yml -f docker-compose.prod.yml -p pulse_prod up -d
 

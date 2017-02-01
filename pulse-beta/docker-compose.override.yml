@@ -21,7 +21,7 @@ services:
 
   openwayback:
     environment:
-      - "WAYBACK_HTTPFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1/1_data/pulse/crawler07"
+      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.43:14000/webhdfs/v1/1_data/pulse/crawler07"
       - "CDX_INDEX_SERVER=http://192.168.45.21:8080/ddhapt-beta"
       - "WAYBACK_URL_PREFIX=https://dev.webarchive.org.uk/act"
 
