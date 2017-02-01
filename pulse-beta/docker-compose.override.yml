@@ -5,21 +5,21 @@
 services:
 
   # Integration points:
-    
+
   shepherd:
     environment:
       - "CDXSERVER_URL=http://192.168.45.21:8080/ddhapt-beta"
-      - "HDFS_OUTPUT_PREFIX="
+      - "HDFS_OUTPUT_PREFIX=/1_data/pulse/crawler07"
       - "HDFS_NAMENODE_HOST=192.168.45.43"
       - "HDFS_NAMENODE_PORT=50070"
       - "HDFS_EFFECTIVE_USER=hdfs"
       - "WEBHDFS_PORT=14000"
       - "WEBHDFS_USER=hdfs"
-      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/webhdfs/v1"
+      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/webhdfs/v1/1_data/pulse/crawler07"
 
   openwayback:
     environment:
-      - "WAYBACK_HTTPFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1/beta"
+      - "WAYBACK_HTTPFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1/1_data/pulse/crawler07"
       - "CDX_INDEX_SERVER=http://192.168.45.21:8080/ddhapt-beta"
       - "WAYBACK_URL_PREFIX=https://dev.webarchive.org.uk/act"
 
