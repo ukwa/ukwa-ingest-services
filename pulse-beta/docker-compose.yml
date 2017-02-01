@@ -39,6 +39,84 @@ services:
     extra_hosts:
       - "clamd:192.168.45.87"
 
+  # UKWA Heritrix (monthly)
+  ukwa-heritrix-monthly:
+    image: ukwa/heritrix
+    hostname: ukwa-h3-pulse-monthly
+    ports:
+      - "${INTERNAL_IP}:8445:8443"
+    environment:
+      - "LC_ALL=en_US.utf8"
+      - "HERITRIX_USER=${HERITRIX_USER}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
+    #  - "MONITRIX_ENABLED=1"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+    extra_hosts:
+      - "clamd:192.168.45.87"
+
+  # UKWA Heritrix (quarterly)
+  ukwa-heritrix-quarterly:
+    image: ukwa/heritrix
+    hostname: ukwa-h3-pulse-quarterly
+    ports:
+      - "${INTERNAL_IP}:8446:8443"
+    environment:
+      - "LC_ALL=en_US.utf8"
+      - "HERITRIX_USER=${HERITRIX_USER}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
+    #  - "MONITRIX_ENABLED=1"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+    extra_hosts:
+      - "clamd:192.168.45.87"
+
+  # UKWA Heritrix (sixmonthly)
+  ukwa-heritrix-sixmonthly:
+    image: ukwa/heritrix
+    hostname: ukwa-h3-pulse-sixmonthly
+    ports:
+      - "${INTERNAL_IP}:8447:8443"
+    environment:
+      - "LC_ALL=en_US.utf8"
+      - "HERITRIX_USER=${HERITRIX_USER}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
+    #  - "MONITRIX_ENABLED=1"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+    extra_hosts:
+      - "clamd:192.168.45.87"
+
+  # UKWA Heritrix (annual)
+  ukwa-heritrix-annual:
+    image: ukwa/heritrix
+    hostname: ukwa-h3-pulse-annual
+    ports:
+      - "${INTERNAL_IP}:8448:8443"
+    environment:
+      - "LC_ALL=en_US.utf8"
+      - "HERITRIX_USER=${HERITRIX_USER}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
+    #  - "MONITRIX_ENABLED=1"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+    extra_hosts:
+      - "clamd:192.168.45.87"
+
+  # --------------------
+
   # Monitrix, built on ELK by extending Logstash to support Heritrix logs.
   monitrix:
     image: ukwa/monitrix
@@ -64,8 +142,6 @@ services:
       - "${INTERNAL_IP}:8010:8010"
     links:
       - warcprox
-    volumes:
-      - "/zfspool/webrender-tmp:/tmp/webrender"
 
   # WARC Proxy, with de-duplication disabled and a rapid rollover:
   warcprox:
@@ -92,19 +168,11 @@ services:
       - "W3ACT_USER=${W3ACT_USER}"
       - "W3ACT_PW=${W3ACT_PASSWORD}"
       - "W3ACT_URL=http://w3act:9000/act/"
-      - "CDXSERVER_URL=http://192.168.45.21:8080/ddhapt-beta"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
       - "CLAMD_HOST=clamd"
       - "CLAMD_PORT=3310"
       - "HERITRIX_USERNAME=${HERITRIX_USER}"
       - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
-      - "HDFS_OUTPUT_PREFIX=/1_data/pulse/crawler07"
-      - "HDFS_NAMENODE_HOST=192.168.45.43"
-      - "HDFS_NAMENODE_PORT=50070"
-      - "HDFS_EFFECTIVE_USER=hdfs"
-      - "WEBHDFS_PORT=14000"
-      - "WEBHDFS_USER=hdfs"
-      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/webhdfs/v1"
       - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
       - "AMQP_HOST=amqp"
       - "SLACK_TOKEN=${SLACK_TOKEN}"
@@ -130,11 +198,8 @@ services:
       - "${INTERNAL_IP}:9080:8080"
       - "${INTERNAL_IP}:8090:8090"
     environment:
-      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.43:14000/webhdfs/v1/1_data/pulse/crawler07"
       - "WAYBACK_URL_HOST=localhost"
       - "WAYBACK_URL_PORT=8080"
-      - "WAYBACK_URL_PREFIX=https://dev.webarchive.org.uk/act"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/ddhapt-beta"
       - "CDX_WHITELIST="
       - "WAYBACK_EXCLUDE_FILE="
       - "WAYBACK_EMBARGO=0"
@@ -147,47 +212,21 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.0-BETA-7
+    image: ukwa/w3act:2.0.0-BETA-8
     environment:
-      - "SERVER_NAME=https://dev.webarchive.org.uk"
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
       - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
       - "DB_DRIVER=org.postgresql.Driver"
-      - "DB_URI=postgres://training:training@192.168.45.82/w3act"
       - "USE_TEST_DATA=false"
       - "ENABLE_DDHAPT=true"
-      - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
       - "SMTP_SERVER=juno.bl.uk"
       - "WAYBACK_URL=http://openwayback:8080/wayback"
       - "MONITRIX_URI=http://monitrix:5601/app/kibana"
       - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
       - "AMQP_HOST=amqp"
-      - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
     ports:
       - "${INTERNAL_IP}:9000:9000"
     links:
       - openwayback
       - pdf2htmlex
-
-  # Data Volume Container (as explicit volumes are not okay for production. 
-  #  not clear why, see http://serverfault.com/questions/750868/how-to-decide-between-a-docker-volume-container-and-a-docker-volume)
-  # Should probably switch to named volumes (below)
-  dvc:
-    image: busybox
-    volumes:
-      - /zfspool/heritrix/jobs:/jobs
-      - /zfspool/heritrix/scratch:/heritrix/scratch
-      - /zfspool/heritrix/state:/heritrix/state
-      - /zfspool/heritrix/output:/heritrix/output
-      - /zfspool/heritrix/wren:/heritrix/wren
-      - /zfspool/heritrix/task-state:/state
-
-
-#volumes:
-  # The location where we store the job data:
-#  - /zfspool/heritrix/jobs:/zfspool/heritrix/jobs
-  # The main crawler output location:
-#  - /zfspool/heritrix/output:/zfspool/heritrix/output
-  # Temporary output location for rendering pages:
-#  - /zfspool/heritrix/wren:/zfspool/heritrix/wren

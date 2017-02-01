@@ -1,0 +1,50 @@
+# This override file augments the base configuration with the additional configuration that distingiuishes different deployments
+#
+# The settings below are for the 'dev' service.
+#
+services:
+
+  # Integration points:
+    
+  shepherd:
+    environment:
+      - "CDXSERVER_URL=http://192.168.45.21:8080/ddhapt-beta"
+      - "HDFS_OUTPUT_PREFIX="
+      - "HDFS_NAMENODE_HOST=192.168.45.43"
+      - "HDFS_NAMENODE_PORT=50070"
+      - "HDFS_EFFECTIVE_USER=hdfs"
+      - "WEBHDFS_PORT=14000"
+      - "WEBHDFS_USER=hdfs"
+      - "WEBHDFS_PREFIX=http://192.168.45.43:14000/webhdfs/v1"
+
+  openwayback:
+    environment:
+      - "WAYBACK_HTTPFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1/beta"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/ddhapt-beta"
+      - "WAYBACK_URL_PREFIX=https://dev.webarchive.org.uk/act"
+
+  w3act:
+    environment:
+      - "SERVER_NAME=https://dev.webarchive.org.uk"
+      - "DB_URI=postgres://training:training@192.168.45.82/w3act"
+      - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
+      - "ACCESS_RESOLVER_URI=https://dev.webarchive.org.uk/access/resolve/"
+
+  # Disk volumes
+
+  webrender:
+    volumes:
+      - "/zfspool/webrender-tmp:/tmp/webrender"
+
+  # Data Volume Container (as explicit volumes are not okay for production. 
+  #  not clear why, see http://serverfault.com/questions/750868/how-to-decide-between-a-docker-volume-container-and-a-docker-volume)
+  # Should probably switch to named volumes (below)
+  dvc:
+    image: busybox
+    volumes:
+      - /zfspool/heritrix/jobs:/jobs
+      - /zfspool/heritrix/scratch:/heritrix/scratch
+      - /zfspool/heritrix/state:/heritrix/state
+      - /zfspool/heritrix/output:/heritrix/output
+      - /zfspool/heritrix/wren:/heritrix/wren
+      - /zfspool/heritrix/task-state:/state

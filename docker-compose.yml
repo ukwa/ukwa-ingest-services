@@ -8,7 +8,7 @@ services:
     ports:
       - "8443:8443"
     environment:
-       - "JAVA_OPTS=-Xmx2g -Dhttps.protocols=TLSv1,TLSv1.1,TLSv1.2"
+       - "JAVA_OPTS=-Xmx2g"
     #  - "MONITRIX_ENABLED=1"
     links:
       - clamd
@@ -91,7 +91,7 @@ services:
       - "CLAMD_PORT=3310"
       - "HERITRIX_USERNAME=heritrix"
       - "HERITRIX_PASSWORD=heritrix"
-      - "HDFS_OUTPUT_PREFIX=/1_data/pulse"
+      - "HDFS_OUTPUT_PREFIX="
       - "HDFS_NAMENODE_HOST=hadoop"
       - "HDFS_NAMENODE_PORT=50070"
       - "HDFS_EFFECTIVE_USER=root"
@@ -136,7 +136,7 @@ services:
       - "WAYBACK_HTTPFS_PREFIX=http://hadoop:50070/webhdfs/v1"
       - "WAYBACK_URL_HOST=localhost"
       - "WAYBACK_URL_PORT=8080"
-      - "WAYBACK_URL_PREFIX=http://openwayback:8080"
+      - "WAYBACK_URL_PREFIX=http://localhost:9000/act"
       - "CDX_INDEX_SERVER=http://cdxserver:8080/fc"
       - "CDX_WHITELIST="
       - "WAYBACK_EXCLUDE_FILE="
@@ -183,8 +183,8 @@ services:
       - "APPLICATION_SECRET=E27D^[_<Lpt0vjad]de;3/i;tx3gpRmG4Byof/3nahO/dIo9gbsMWut1w3xg[>9W"
       - "SECRET_SERVER_USER=none"
       - "SECRET_SERVER_PASSWORD=none"
-      - "DB_DRIVER=org.h2.Driver"
-      - "DB_URI=jdbc:h2:mem:play;DB_CLOSE_DELAY=-1"
+      - "DB_DRIVER=org.postgresql.Driver"
+      - "DB_URI=postgres://w3act:w3act@postgres/w3act"
       - "USE_TEST_DATA=true"
       - "ENABLE_EVOLUTIONS=enabled"
       - "APPLY_EVOLUTIONS=true"
@@ -196,12 +196,25 @@ services:
       - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
       - "AMQP_HOST=amqp"
       - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
+#      - "DB_DRIVER=org.h2.Driver"
+#      - "DB_URI=jdbc:h2:mem:play;DB_CLOSE_DELAY=-1"
     links:
       - openwayback
       - pdf2htmlex
-  #    - postgres 
+      - postgres 
     volumes:
       - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going every time, downloading dependencies
+
+
+  # PostgreSQL
+  postgres:
+    image: postgres:9.6
+    environment:
+      - "POSTGRES_USER=w3act"
+      - "POSTGRES_PASSWORD=w3act"
+    ports:
+      - "5432:5432"
+
 
   # Solr, based on https://hub.docker.com/_/solr/
   solr:
@@ -211,7 +224,7 @@ services:
     #entrypoint:
     #  - docker-entrypoint.sh
     #  - solr-precreate
-    #  - dsicovery
+    #  - discovery
 
   # ----------
   # Test sites
