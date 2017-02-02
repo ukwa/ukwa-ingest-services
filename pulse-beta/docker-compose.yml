@@ -242,6 +242,6 @@ services:
     image: postgres:9.6
     environment:
       - "POSTGRES_USER=w3act"
-      - "POSTGRES_PASSWORD=${PGSQL_PASSWORD}"
+      - "POSTGRES_PASSWORD=${W3ACT_PSQL_PASSWORD}"
     ports:
       - "5432:5432"
