@@ -7,7 +7,6 @@ version: '2'
 services:
 
   # Integration points:
-
   shepherd:
     environment:
       - "CDXSERVER_URL=http://192.168.45.21:8080/ddhapt-beta"
@@ -28,11 +27,13 @@ services:
   w3act:
     environment:
       - "SERVER_NAME=https://dev.webarchive.org.uk"
-      - "DB_URI=postgres://training:training@192.168.45.82/w3act"
       - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
       - "ACCESS_RESOLVER_URI=https://dev.webarchive.org.uk/access/resolve/"
 
-  # Disk volumes
+  # Disk volumes for individual services:
+  postgres:
+    volumes:
+      - "/zfspool/postgresql:/var/lib/postgresql/data"
 
   webrender:
     volumes:
