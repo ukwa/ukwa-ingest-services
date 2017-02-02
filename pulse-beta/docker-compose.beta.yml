@@ -29,6 +29,9 @@ services:
       - "SERVER_NAME=https://beta.webarchive.org.uk"
       - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
       - "ACCESS_RESOLVER_URI=https://beta.webarchive.org.uk/access/resolve/"
+      - "ENABLE_EVOLUTIONS=false"
+      - "APPLY_EVOLUTIONS=false"
+      - "APPLY_DOWN_EVOLUTIONS=false"
 
   # Disk volumes for individual services:
   postgres:

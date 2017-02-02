@@ -223,7 +223,7 @@ services:
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
       - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
       - "DB_DRIVER=org.postgresql.Driver"
-      - "DB_URI=postgres://w3act:${PGSQL_PASSWORD}@postgres/w3act"
+      - "DB_URI=postgres://w3act:${W3ACT_PSQL_PASSWORD}@postgres/w3act"
       - "USE_TEST_DATA=false"
       - "ENABLE_DDHAPT=true"
       - "SMTP_SERVER=juno.bl.uk"
