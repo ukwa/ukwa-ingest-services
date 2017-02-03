@@ -40,7 +40,14 @@ services:
       - "5601:5601"
       - "9200:9200"
       - "5000:5000"
-      - "5044:5044" 
+      - "5044:5044"
+
+  grafana:
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./testing/grafana-data:/var/lib/grafana
 
   # RabbitMQ
   amqp:
