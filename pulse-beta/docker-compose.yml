@@ -3,7 +3,9 @@ version: '2'
 services:
   # UKWA Heritrix (daily)
   ukwa-heritrix-daily:
-    image: ukwa/heritrix
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
     hostname: ukwa-h3-pulse-daily
     ports:
       - "${INTERNAL_IP}:8443:8443"
@@ -12,17 +14,12 @@ services:
       - webrender
     volumes_from:
       - dvc:rw
-    environment:
-      - "LC_ALL=en_US.utf8"
-      - "HERITRIX_USER=${HERITRIX_USER}"
-      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
-    #  - "MONITRIX_ENABLED=1"
-    extra_hosts:
-      - "clamd:192.168.45.87"
 
   # UKWA Heritrix (weekly)
   ukwa-heritrix-weekly:
-    extends: ukwa-heritrix-daily
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
     hostname: ukwa-h3-pulse-weekly
     ports:
       - "${INTERNAL_IP}:8444:8443"
@@ -34,7 +31,9 @@ services:
 
   # UKWA Heritrix (monthly)
   ukwa-heritrix-monthly:
-    extends: ukwa-heritrix-daily
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
     hostname: ukwa-h3-pulse-monthly
     ports:
       - "${INTERNAL_IP}:8445:8443"
@@ -46,7 +45,9 @@ services:
 
   # UKWA Heritrix (quarterly)
   ukwa-heritrix-quarterly:
-    extends: ukwa-heritrix-daily
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
     hostname: ukwa-h3-pulse-quarterly
     ports:
       - "${INTERNAL_IP}:8446:8443"
@@ -58,7 +59,9 @@ services:
 
   # UKWA Heritrix (sixmonthly)
   ukwa-heritrix-sixmonthly:
-    extends: ukwa-heritrix-daily
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
     hostname: ukwa-h3-pulse-sixmonthly
     ports:
       - "${INTERNAL_IP}:8447:8443"
@@ -70,7 +73,9 @@ services:
 
   # UKWA Heritrix (annual)
   ukwa-heritrix-annual:
-    extends: ukwa-heritrix-daily
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
     hostname: ukwa-h3-pulse-annual
     ports:
       - "${INTERNAL_IP}:8448:8443"
