@@ -41,6 +41,7 @@ services:
   webrender:
     volumes:
       - "/zfspool/beta/webrender-tmp:/tmp/webrender"
+      - "./gunicorn.ini:/webrender/gunicorn/ini" # Override render server configuration
 
   # Data Volume Container (as explicit volumes are not okay for production. 
   #  not clear why, see http://serverfault.com/questions/750868/how-to-decide-between-a-docker-volume-container-and-a-docker-volume)
