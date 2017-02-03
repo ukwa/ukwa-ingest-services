@@ -135,7 +135,7 @@ services:
 
   # OpenWayback, based loosely on UNB Libraries Dockerfile
   openwayback:
-    build: openwayback
+    image: ukwa/waybacks
     ports:
       - "9080:8080"
       - "8090:8090"
