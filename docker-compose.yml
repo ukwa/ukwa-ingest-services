@@ -69,6 +69,8 @@ services:
       - "8010:8010"
     links:
       - warcprox
+    volumes:
+      - "./pulse-beta/gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
 
   # WARC Proxy, with de-duplication disabled and a rapid rollover:
   warcprox:
