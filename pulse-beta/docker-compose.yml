@@ -107,7 +107,7 @@ services:
     environment:
       - "WARCPROX=warcprox:8000"
       - "LC_ALL=en_US.utf8"
-      - "TMP=/tmp/webrender"
+      - "TMP=/tmp-webrender"
     ports:
       - "${INTERNAL_IP}:8010:8010"
     links:
@@ -115,12 +115,13 @@ services:
 
   # WARC Proxy, with de-duplication disabled and a rapid rollover:
   warcprox:
-    image: ukwa/warcprox:2.0
-    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet"
+    image: ukwa/warcprox:2.0b1
+    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /tmp-warcprox/stats.db --certs-dir /tmp-warcprox/certs --quiet"
     environment:
       - "LC_ALL=en_US.utf8"
+      - "TMP=/tmp-warcprox"
     ports:
-      - "${INTERNAL_IP}:8000:8000"
+      - "${INTERNAL_IP}:8001:8000"
     links:
       - openwayback
     ulimits:
