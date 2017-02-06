@@ -115,8 +115,8 @@ services:
 
   # WARC Proxy, with de-duplication disabled and a rapid rollover:
   warcprox:
-    image: ukwa/warcprox:2.0b1
-    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /tmp-warcprox/stats.db --certs-dir /tmp-warcprox/certs --quiet"
+    image: ukwa/warcprox:2.0-py36-alpine
+    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null"
     environment:
       - "LC_ALL=en_US.utf8"
       - "TMP=/tmp-warcprox"
@@ -125,7 +125,8 @@ services:
     links:
       - openwayback
     ulimits:
-      nproc: 65535 # See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
+      nproc: 2000 # See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
+      #nofiles: 4000
     volumes_from:
       - dvc:rw
   
