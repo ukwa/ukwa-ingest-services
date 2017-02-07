@@ -121,7 +121,7 @@ services:
       - "LC_ALL=en_US.utf8"
       - "TMP=/tmp-warcprox"
     ports:
-      - "${INTERNAL_IP}:8001:8000"
+      - "${INTERNAL_IP}:8000:8000"
     links:
       - openwayback
     ulimits:
@@ -187,6 +187,8 @@ services:
   # PDF to HTML service
   pdf2htmlex:
     image: ukwa/pdf2htmlex
+    ports:
+      - "${INTERNAL_IP}:5005:5000"
     links:
       - openwayback
 
