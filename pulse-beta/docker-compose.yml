@@ -181,7 +181,7 @@ services:
       - "WAYBACK_URL_HOST=localhost"
       - "WAYBACK_URL_PORT=8080"
       - "CDX_WHITELIST="
-      - "WAYBACK_EXCLUDE_FILE="
+      - "WAYBACK_EXCLUDE_FILE=/waybacks/wayback-qa/target/ROOT/WEB-INF/classes/exclude.txt"
       - "WAYBACK_EMBARGO=0"
 
   # PDF to HTML service
@@ -194,7 +194,7 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.0-BETA-12
+    image: ukwa/w3act:2.0.0-BETA-15
     environment:
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
