@@ -25,7 +25,7 @@ services:
     volumes:
       - ./testing/heritrix/output:/heritrix/output
       - ./testing/heritrix/wren:/heritrix/wren
-      - ./testing/jobs:/jobs
+      - ./testing/heritrix/jobs:/jobs
 
   # Clamd virus scanning Service
   clamd:

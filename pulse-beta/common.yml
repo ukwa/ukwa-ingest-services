@@ -3,7 +3,7 @@ version: '2'
 services:
   # UKWA Heritrix common setup
   ukwa-heritrix:
-    image: ukwa/heritrix
+    image: ukwa/heritrix:3.3.0-LBS-2016-02-BL-1.0.0
     environment:
       - "LC_ALL=en_US.utf8"
       - "HERITRIX_USER=${HERITRIX_USER}"
