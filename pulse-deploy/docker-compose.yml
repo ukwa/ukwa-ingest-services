@@ -213,6 +213,12 @@ services:
     links:
       - openwayback
       - pdf2htmlex
+    extra_hosts:
+      - "blsps.ad.bl.uk:194.66.238.125"
+      - "pii.ad.bl.uk:172.16.101.47" 
+      - "v8b-dlsebk01.ad.bl.uk:192.168.242.115"
+      - "v8b-dlseco01.ad.bl.uk:192.168.242.107"
+      - "piiirc.ad.bl.uk:192.168.225.236"
 
   # PostgreSQL
   postgres:
