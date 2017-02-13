@@ -38,13 +38,13 @@ services:
 
   warcprox:
     volumes:
-      - "/zfspool/tmp/warcprox:/tmp-warcprox"
+      - "/zfspool/test/tmp/warcprox:/tmp-warcprox"
 
   webrender:
     #environment:
     #  - "WARCPROX="
     volumes:
-      - "/zfspool/tmp/webrender:/tmp-webrender"
+      - "/zfspool/test/tmp/webrender:/tmp-webrender"
       - "./gunicorn.ini:/webrender/gunicorn.ini"
 
   # Data Volume Container (as explicit volumes are not okay for production. 
@@ -53,9 +53,9 @@ services:
   dvc:
     image: busybox
     volumes:
-      - /zfspool/heritrix/jobs:/jobs
-      - /zfspool/heritrix/scratch:/heritrix/scratch
-      - /zfspool/heritrix/state:/heritrix/state
-      - /zfspool/heritrix/output:/heritrix/output
-      - /zfspool/heritrix/wren:/heritrix/wren
-      - /zfspool/heritrix/task-state:/state
+      - /zfspool/test/heritrix/jobs:/jobs
+      - /zfspool/test/heritrix/scratch:/heritrix/scratch
+      - /zfspool/test/heritrix/state:/heritrix/state
+      - /zfspool/test/heritrix/output:/heritrix/output
+      - /zfspool/test/heritrix/wren:/heritrix/wren
+      - /zfspool/test/heritrix/task-state:/state
