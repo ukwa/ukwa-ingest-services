@@ -216,7 +216,7 @@ services:
 
   # PostgreSQL
   postgres:
-    image: postgres:9.6
+    image: postgres:9.6.2
     environment:
       - "POSTGRES_USER=w3act"
       - "POSTGRES_PASSWORD=${W3ACT_PSQL_PASSWORD}"
