@@ -1,6 +1,6 @@
 # This override file augments the base configuration with the additional configuration that distingiuishes different deployments
 #
-# The settings below are for the 'beta' service.
+# The settings below are for the 'prod' service.
 #
 version: '2'
 
@@ -9,38 +9,38 @@ services:
   # Integration points:
   shepherd:
     environment:
-      - "CDXSERVER_URL=http://192.168.45.21:8080/beta-data-heritrix"
-      - "HDFS_OUTPUT_PREFIX=/beta"
+      - "CDXSERVER_URL=http://192.168.45.21:8080/data-heritrix"
+      - "HDFS_OUTPUT_PREFIX=/"
       - "HDFS_NAMENODE_HOST=194.66.232.90"
       - "HDFS_NAMENODE_PORT=50070"
       - "HDFS_EFFECTIVE_USER=heritrix"
       - "WEBHDFS_PORT=14000"
       - "WEBHDFS_USER=heritrix"
-      - "WEBHDFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1/beta"
+      - "WEBHDFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1"
 
   openwayback:
     environment:
-      - "WAYBACK_HTTPFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1/beta"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/beta-data-heritrix"
-      - "WAYBACK_URL_PREFIX=https://beta.webarchive.org.uk/act"
+      - "WAYBACK_HTTPFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
+      - "WAYBACK_URL_PREFIX=https://www.webarchive.org.uk/act"
 
   w3act:
     environment:
-      - "SERVER_NAME=https://beta.webarchive.org.uk"
-      - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
-      - "ACCESS_RESOLVER_URI=https://beta.webarchive.org.uk/access/resolve/"
-      - "ENABLE_EVOLUTIONS=false"
-      - "APPLY_EVOLUTIONS=false"
-      - "APPLY_DOWN_EVOLUTIONS=false"
+      - "SERVER_NAME=https://www.webarchive.org.uk"
+      - "PII_URI=http://pii.ad.bl.uk/pii/vdc"
+      - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
+      - "ENABLE_EVOLUTIONS=true"
+      - "APPLY_EVOLUTIONS=true"
+      - "APPLY_DOWN_EVOLUTIONS=true"
 
   # Disk volumes for individual services:
   postgres:
     volumes:
-      - "/zfspool/beta/postgresql:/var/lib/postgresql/data"
+      - "/zfspool/prod/postgresql:/var/lib/postgresql/data"
 
   webrender:
     volumes:
-      - "/zfspool/beta/webrender-tmp:/tmp/webrender"
+      - "/zfspool/prod/webrender-tmp:/tmp/webrender"
       - "./gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
 
   # Data Volume Container (as explicit volumes are not okay for production. 
@@ -49,9 +49,9 @@ services:
   dvc:
     image: busybox
     volumes:
-      - /zfspool/beta/heritrix/jobs:/jobs
-      - /zfspool/beta/heritrix/scratch:/heritrix/scratch
-      - /zfspool/beta/heritrix/state:/heritrix/state
-      - /zfspool/beta/heritrix/output:/heritrix/output
-      - /zfspool/beta/heritrix/wren:/heritrix/wren
-      - /zfspool/beta/heritrix/task-state:/state
+      - /zfspool/prod/heritrix/jobs:/jobs
+      - /zfspool/prod/heritrix/scratch:/heritrix/scratch
+      - /zfspool/prod/heritrix/state:/heritrix/state
+      - /zfspool/prod/heritrix/output:/heritrix/output
+      - /zfspool/prod/heritrix/wren:/heritrix/wren
+      - /zfspool/prod/heritrix/task-state:/state
