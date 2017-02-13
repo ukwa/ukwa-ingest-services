@@ -133,7 +133,7 @@ services:
 
   # Other daemons and processes that coordinate the crawl
   shepherd:
-    image: ukwa/shepherd:1.1.6
+    image: ukwa/shepherd:1.1.7
     command: "/launch-luigi-docker.sh"
     environment:
       - "LC_ALL=en_US.utf8"
@@ -194,7 +194,7 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.0-BETA-15
+    image: ukwa/w3act:2.0.0-BETA-16
     environment:
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"

@@ -34,7 +34,7 @@ services:
   # Disk volumes for individual services:
   postgres:
     volumes:
-      - "/zfspool/postgresql:/var/lib/postgresql/data"
+      - "/zfspool/test/postgresql:/var/lib/postgresql/data"
 
   warcprox:
     volumes:
