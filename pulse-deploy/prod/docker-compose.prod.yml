@@ -29,14 +29,18 @@ services:
       - "SERVER_NAME=https://www.webarchive.org.uk"
       - "PII_URI=http://pii.ad.bl.uk/pii/vdc"
       - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
-      - "ENABLE_EVOLUTIONS=true"
-      - "APPLY_EVOLUTIONS=true"
-      - "APPLY_DOWN_EVOLUTIONS=true"
+      - "ENABLE_EVOLUTIONS=false"
+      - "APPLY_EVOLUTIONS=false"
+      - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
 
   # Disk volumes for individual services:
   postgres:
     volumes:
       - "/zfspool/prod/postgresql:/var/lib/postgresql/data"
+
+  warcprox:
+    volumes:
+      - "/zfspool/test/tmp/warcprox:/tmp/warcprox"
 
   webrender:
     volumes:

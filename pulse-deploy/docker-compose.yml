@@ -107,7 +107,7 @@ services:
     environment:
       - "WARCPROX=warcprox:8000"
       - "LC_ALL=en_US.utf8"
-      - "TMP=/tmp-webrender"
+      - "TMP=/tmp/webrender"
     ports:
       - "${INTERNAL_IP}:8010:8010"
     links:
@@ -119,7 +119,7 @@ services:
     command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet"
     environment:
       - "LC_ALL=en_US.utf8"
-      - "TMP=/tmp-warcprox"
+      - "TMP=/tmp/warcprox"
     ports:
       - "${INTERNAL_IP}:8000:8000"
     links:
@@ -194,7 +194,7 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.0-BETA-16
+    image: ukwa/w3act:2.0.0
     environment:
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"

@@ -38,13 +38,13 @@ services:
 
   warcprox:
     volumes:
-      - "/zfspool/test/tmp/warcprox:/tmp-warcprox"
+      - "/zfspool/test/tmp/warcprox:/tmp/warcprox"
 
   webrender:
     #environment:
     #  - "WARCPROX="
     volumes:
-      - "/zfspool/test/tmp/webrender:/tmp-webrender"
+      - "/zfspool/test/tmp/webrender:/tmp/webrender"
       - "./gunicorn.ini:/webrender/gunicorn.ini"
 
   # Data Volume Container (as explicit volumes are not okay for production. 
