@@ -20,6 +20,10 @@ In the case of a planned system shutdown, the following will stop and checkpoint
 
 Note that a 'neat' shutdown may take a while as it waits for each downloader ToeThread to finish.
 
+Once those tasks have completed, the containers can be shut down:
+
+    ./docker-prod.sh down
+
 For unplanned outages, note that the crawlers all checkpoint every four hours, so even a hard shutdown can usually be resumed.
 
 After the machine comes up again, first start all the services:
