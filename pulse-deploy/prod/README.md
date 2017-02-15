@@ -22,7 +22,11 @@ Note that a 'neat' shutdown may take a while as it waits for each downloader Toe
 
 For unplanned outages, note that the crawlers all checkpoint every four hours, so even a hard shutdown can usually be resumed.
 
-To resume the crawls from the last checkpoint, use the `resume` command:
+After the machine comes up again, first start all the services:
+
+    ./docker-prod.sh up -d
+
+Once everything is running, we can resume the crawls from the last checkpoint using the `resume` command:
 
     ./docker-prod.sh exec shepherd pulse resume daily
     ./docker-prod.sh exec shepherd pulse resume weekly
