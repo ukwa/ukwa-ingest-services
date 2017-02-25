@@ -11,16 +11,16 @@ services:
     environment:
       - "CDXSERVER_URL=http://192.168.45.21:8080/data-heritrix"
       - "HDFS_OUTPUT_PREFIX=/"
-      - "HDFS_NAMENODE_HOST=194.66.232.90"
+      - "HDFS_NAMENODE_HOST=192.168.45.13"
       - "HDFS_NAMENODE_PORT=50070"
       - "HDFS_EFFECTIVE_USER=heritrix"
       - "WEBHDFS_PORT=14000"
       - "WEBHDFS_USER=heritrix"
-      - "WEBHDFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1"
+      - "WEBHDFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
 
   openwayback:
     environment:
-      - "WAYBACK_HTTPFS_PREFIX=http://194.66.232.90:14000/webhdfs/v1"
+      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
       - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
       - "WAYBACK_URL_PREFIX=https://www.webarchive.org.uk/act"
 
