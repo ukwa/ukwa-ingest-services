@@ -33,9 +33,9 @@ services:
       - "APPLY_EVOLUTIONS=false"
       - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
     volumes:
-      - "/zfspool/prod/dls/ebooks:/opt/data/w3act/ebooks"
-      - "/zfspool/prod/dls/ejournals/Drop:/opt/data/w3act/ejournals"
       - "/zfspool/prod/dls-sips-submitted:/opt/data/dls_sips_copy"
+      - "/zfspool/prod/dls/ebooks:/opt/data/w3act/ebooks:shared"
+      - "/zfspool/prod/dls/ejournals/Drop:/opt/data/w3act/ejournals:shared"
 
   # Disk volumes for individual services:
   postgres:
