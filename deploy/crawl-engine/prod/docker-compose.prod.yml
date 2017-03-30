@@ -9,40 +9,18 @@ services:
   # Integration points:
   shepherd:
     environment:
-      - "CDXSERVER_URL=http://192.168.45.21:8080/data-heritrix"
+      - "W3ACT_URL=http://act:9000/act/"
+      - "WAYBACK_URL=http://act:8080/wayback"
+      - "CDXSERVER_URL=http://bigcdx:8080/data-heritrix"
       - "HDFS_OUTPUT_PREFIX=/"
-      - "HDFS_NAMENODE_HOST=192.168.45.13"
+      - "HDFS_NAMENODE_HOST=nellie"
       - "HDFS_NAMENODE_PORT=50070"
       - "HDFS_EFFECTIVE_USER=heritrix"
       - "WEBHDFS_PORT=14000"
       - "WEBHDFS_USER=heritrix"
-      - "WEBHDFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
-
-  openwayback:
-    environment:
-      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
-      - "WAYBACK_URL_PREFIX=https://www.webarchive.org.uk/act"
-      - "WAYBACK_URL_HOST=194.66.232.88" 
-
-  w3act:
-    environment:
-      - "SERVER_NAME=https://www.webarchive.org.uk"
-      - "PII_URI=http://pii.ad.bl.uk/pii/vdc"
-      - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
-      - "ENABLE_EVOLUTIONS=false"
-      - "APPLY_EVOLUTIONS=false"
-      - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
-    volumes:
-      - "/data/prod/dls-sips-submitted:/opt/data/dls_sips_copy"
-      - "/data/prod/dls/ebooks:/opt/data/w3act/ebooks:shared"
-      - "/data/prod/dls/ejournals/Drop:/opt/data/w3act/ejournals:shared"
+      - "WEBHDFS_PREFIX=http://hdfs:14000/webhdfs/v1"
 
   # Disk volumes for individual services:
-  postgres:
-    volumes:
-      - "/data/prod/postgresql:/var/lib/postgresql/data"
-
   warcprox:
     volumes:
       - "/data/test/tmp/warcprox:/tmp/warcprox"
