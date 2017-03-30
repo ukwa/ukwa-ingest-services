@@ -2,8 +2,9 @@
 
 source /etc/sysconfig/w3act
 
-scp root@act.wa.bl.uk:/backup/postgres_db/w3act.pgdump-20170214095311 w3act.pgdump
-cp w3act.pgdump /zfspool/prod/postgresql/
+scp root@sh.wa.bl.uk:/backups/psql/crawler07.n45.bl.uk-pulseprod_postgres_1-w3act.pgdump-20170329 w3act.pgdump
+mkdir -p /data/prod/postgresql
+cp w3act.pgdump /data/prod/postgresql/
 
 ./docker-prod.sh up -d postgres
 

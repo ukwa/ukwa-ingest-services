@@ -23,6 +23,7 @@ services:
       - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
       - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
       - "WAYBACK_URL_PREFIX=https://www.webarchive.org.uk/act"
+      - "WAYBACK_URL_HOST=194.66.232.88" 
 
   w3act:
     environment:
@@ -33,22 +34,22 @@ services:
       - "APPLY_EVOLUTIONS=false"
       - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
     volumes:
-      - "/zfspool/prod/dls-sips-submitted:/opt/data/dls_sips_copy"
-      - "/zfspool/prod/dls/ebooks:/opt/data/w3act/ebooks:shared"
-      - "/zfspool/prod/dls/ejournals/Drop:/opt/data/w3act/ejournals:shared"
+      - "/data/prod/dls-sips-submitted:/opt/data/dls_sips_copy"
+      - "/data/prod/dls/ebooks:/opt/data/w3act/ebooks:shared"
+      - "/data/prod/dls/ejournals/Drop:/opt/data/w3act/ejournals:shared"
 
   # Disk volumes for individual services:
   postgres:
     volumes:
-      - "/zfspool/prod/postgresql:/var/lib/postgresql/data"
+      - "/data/prod/postgresql:/var/lib/postgresql/data"
 
   warcprox:
     volumes:
-      - "/zfspool/test/tmp/warcprox:/tmp/warcprox"
+      - "/data/test/tmp/warcprox:/tmp/warcprox"
 
   webrender:
     volumes:
-      - "/zfspool/prod/webrender-tmp:/tmp/webrender"
+      - "/data/prod/webrender-tmp:/tmp/webrender"
       - "./gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
 
   # Data Volume Container (as explicit volumes are not okay for production. 
@@ -57,9 +58,9 @@ services:
   dvc:
     image: busybox
     volumes:
-      - /zfspool/prod/heritrix/jobs:/jobs
-      - /zfspool/prod/heritrix/scratch:/heritrix/scratch
-      - /zfspool/prod/heritrix/state:/heritrix/state
-      - /zfspool/prod/heritrix/output:/heritrix/output
-      - /zfspool/prod/heritrix/wren:/heritrix/wren
-      - /zfspool/prod/heritrix/task-state:/state
+      - /data/prod/heritrix/jobs:/jobs
+      - /data/prod/heritrix/scratch:/heritrix/scratch
+      - /data/prod/heritrix/state:/heritrix/state
+      - /data/prod/heritrix/output:/heritrix/output
+      - /data/prod/heritrix/wren:/heritrix/wren
+      - /data/prod/heritrix/task-state:/state
