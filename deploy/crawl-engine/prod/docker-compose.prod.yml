@@ -19,6 +19,8 @@ services:
       - "WEBHDFS_PORT=14000"
       - "WEBHDFS_USER=heritrix"
       - "WEBHDFS_PREFIX=http://hdfs:14000/webhdfs/v1"
+    extra_hosts:
+      - "act:127.0.0.1"
 
   # Disk volumes for individual services:
   warcprox:
