@@ -1,0 +1,235 @@
+version: '2'
+
+services:
+  # UKWA Heritrix (daily)
+  ukwa-heritrix-daily:
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
+    hostname: ukwa-h3-pulse-daily
+    ports:
+      - "${INTERNAL_IP}:8443:8443"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+
+  # UKWA Heritrix (weekly)
+  ukwa-heritrix-weekly:
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
+    hostname: ukwa-h3-pulse-weekly
+    ports:
+      - "${INTERNAL_IP}:8444:8443"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+
+  # UKWA Heritrix (monthly)
+  ukwa-heritrix-monthly:
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
+    hostname: ukwa-h3-pulse-monthly
+    ports:
+      - "${INTERNAL_IP}:8445:8443"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+
+  # UKWA Heritrix (quarterly)
+  ukwa-heritrix-quarterly:
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
+    hostname: ukwa-h3-pulse-quarterly
+    ports:
+      - "${INTERNAL_IP}:8446:8443"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+
+  # UKWA Heritrix (sixmonthly)
+  ukwa-heritrix-sixmonthly:
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
+    hostname: ukwa-h3-pulse-sixmonthly
+    ports:
+      - "${INTERNAL_IP}:8447:8443"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+
+  # UKWA Heritrix (annual)
+  ukwa-heritrix-annual:
+    extends:
+      file: common.yml
+      service: ukwa-heritrix
+    hostname: ukwa-h3-pulse-annual
+    ports:
+      - "${INTERNAL_IP}:8448:8443"
+    links:
+      - amqp
+      - webrender
+    volumes_from:
+      - dvc:rw
+
+  # --------------------
+
+  # Monitrix, built on ELK by extending Logstash to support Heritrix logs.
+  monitrix:
+    image: ukwa/monitrix
+    ports:
+      - "${INTERNAL_IP}:5601:5601"
+
+  # RabbitMQ
+  amqp:
+    image: rabbitmq:3.5-management
+    ports:
+      - "${INTERNAL_IP}:15672:15672"  # management port (guest:guest)
+    logging:
+      driver: none  
+
+  # PhantomJS web page rendering service
+  webrender:
+    image: ukwa/webrender-phantomjs:2.0.4
+    environment:
+      - "WARCPROX=warcprox:8000"
+      - "LC_ALL=en_US.utf8"
+      - "TMP=/tmp/webrender"
+    ports:
+      - "${INTERNAL_IP}:8010:8010"
+    links:
+      - warcprox
+
+  # WARC Proxy, with de-duplication disabled and a rapid rollover:
+  warcprox:
+    image: ukwa/warcprox:2.0-py36-alpine
+    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet"
+    environment:
+      - "LC_ALL=en_US.utf8"
+      - "TMP=/tmp/warcprox"
+    ports:
+      - "${INTERNAL_IP}:8000:8000"
+    links:
+      - openwayback
+    ulimits:
+      nproc: 2000 # See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
+      #nofiles: 4000
+    volumes_from:
+      - dvc:rw
+  
+
+  # Other daemons and processes that coordinate the crawl
+  shepherd:
+    image: ukwa/shepherd:1.1.11
+    command: "/launch-luigi-docker.sh"
+    environment:
+      - "LC_ALL=en_US.utf8"
+      - "W3ACT_USER=${W3ACT_USER}"
+      - "W3ACT_PW=${W3ACT_PASSWORD}"
+      - "W3ACT_URL=http://w3act:9000/act/"
+      - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "CLAMD_HOST=clamd"
+      - "CLAMD_PORT=3310"
+      - "HERITRIX_USERNAME=${HERITRIX_USER}"
+      - "HERITRIX_PASSWORD=${HERITRIX_PASSWORD}"
+      - "AMQP_URL=amqp://guest:guest@amqp:5672/%2f"
+      - "AMQP_HOST=amqp"
+      - "SLACK_TOKEN=${SLACK_TOKEN}"
+      - "ELASTICSEARCH_HOST=monitrix"
+      - "ELASTICSEARCH_PORT=9200"
+      - "PYTHONUNBUFFERED=TRUE"
+    links:
+      - amqp
+      - ukwa-heritrix-daily
+      - ukwa-heritrix-weekly
+      - ukwa-heritrix-monthly
+      - ukwa-heritrix-quarterly
+      - ukwa-heritrix-sixmonthly
+      - ukwa-heritrix-annual
+      - webrender
+      - w3act
+      - openwayback
+      - monitrix
+    ports:
+      - "${INTERNAL_IP}:5082:8082"
+#      - "${INTERNAL_IP}:5001:8000"
+    volumes_from:
+      - dvc:rw
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+
+  # OpenWayback for QA
+  openwayback:
+    image: ukwa/waybacks
+    ports:
+      - "${INTERNAL_IP}:9080:8080"
+      - "${INTERNAL_IP}:8090:8090"
+    environment:
+      - "UKWA_OWB_VERSION=qa"
+      - "WAYBACK_URL_PORT=8080"
+      - "WAYBACK_PROXY_PORT=8090"
+      - "CDX_WHITELIST="
+      - "WAYBACK_EXCLUDE_FILE=/waybacks/wayback-qa/target/ROOT/WEB-INF/classes/exclude.txt"
+      - "WAYBACK_EMBARGO=0"
+
+  # PDF to HTML service
+  pdf2htmlex:
+    image: ukwa/pdf2htmlex
+    ports:
+      - "${INTERNAL_IP}:5005:5000"
+    links:
+      - openwayback
+
+  # W3ACT
+  w3act:
+    image: ukwa/w3act:2.0.6
+    environment:
+      - "APPLICATION_SECRET=${APPLICATION_SECRET}"
+      - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
+      - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
+      - "DB_DRIVER=org.postgresql.Driver"
+      - "DB_URI=postgres://w3act:${W3ACT_PSQL_PASSWORD}@postgres/w3act"
+      - "USE_TEST_DATA=false"
+      - "ENABLE_DDHAPT=true"
+      - "SMTP_SERVER=juno.bl.uk"
+      - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "MONITRIX_URI=http://monitrix:5601/app/kibana"
+      - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
+      - "AMQP_HOST=amqp"
+    ports:
+      - "${INTERNAL_IP}:9000:9000"
+    links:
+      - openwayback
+      - pdf2htmlex
+    extra_hosts:
+      - "blsps.ad.bl.uk:194.66.238.125"
+      - "pii.ad.bl.uk:172.16.101.47" 
+      - "v8b-dlsebk01.ad.bl.uk:192.168.242.115"
+      - "v8b-dlseco01.ad.bl.uk:192.168.242.107"
+      - "piiirc.ad.bl.uk:192.168.225.236"
+
+  # PostgreSQL
+  postgres:
+    image: postgres:9.6.2
+    environment:
+      - "POSTGRES_USER=w3act"
+      - "POSTGRES_PASSWORD=${W3ACT_PSQL_PASSWORD}"
+    ports:
+      - "5432:5432"
