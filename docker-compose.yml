@@ -69,8 +69,8 @@ services:
       - "8010:8010"
     links:
       - warcprox
-    volumes:
-      - "./pulse-beta/gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
+    #volumes:
+    #  - "./pulse-beta/gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
 
   # WARC Proxy, with de-duplication disabled and a rapid rollover:
   warcprox:
@@ -211,8 +211,8 @@ services:
       - openwayback
       - pdf2htmlex
       - postgres 
-    volumes:
-      - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going every time, downloading dependencies
+#    volumes:
+#      - ~/.ivy2/:/root/.ivy2/ # Mount the Ivy2 dependencies cache so it doesn't take forever to get going every time, downloading dependencies
 
 
   # PostgreSQL
