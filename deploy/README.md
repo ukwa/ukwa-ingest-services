@@ -15,3 +15,5 @@ A helper script is provided to combine the Docker Compose files, see e.g. `./cra
 
 ...which will fire up the front-end services for the BETA version.
 
+Note that the `dc` folder contains a Docker Compose file that only illustrates how we might be able to deploy a domain crawl that way - it is not a production deployment.
+
