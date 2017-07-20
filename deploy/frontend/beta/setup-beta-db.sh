@@ -11,7 +11,7 @@ cp w3act.pgdump /data/beta/postgresql/
 sleep 10
 
 echo "Importing data..."
-./docker-beta.sh exec postgres pg_restore -d w3act -U w3act -O /var/lib/postgresql/data/w3act.pgdump
+./docker-beta.sh exec postgres pg_restore -d w3act -U w3act -O /var/lib/postgresql/w3act.pgdump
 echo "First upgrade to 2.0.x needs a TRUNCATE watched_target CASCADE; !!!"
 
 sleep 10

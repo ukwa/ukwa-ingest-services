@@ -11,7 +11,7 @@ A helper script is provided to combine the Docker Compose files, see e.g. `./cra
 
 ...and run e.g.
 
-    $ ./docker-beta.sh -d up
+    $ ./docker-beta.sh up -d
 
 ...which will fire up the front-end services for the BETA version.
 
