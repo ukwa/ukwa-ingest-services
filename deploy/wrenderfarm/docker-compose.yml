@@ -1,0 +1,24 @@
+
+version: '2'
+
+services:
+
+  # PhantomJS web page rendering service
+  wrender-worker:
+    image: ukwa/webrender-phantomjs:2.0.4
+    environment:
+      - "WARCPROX=warcprox:8000"
+      - "LC_ALL=en_US.utf8"
+      - "TMP=/tmp/webrender"
+    links:
+      - warcprox
+
+  # HAProxy load balancer
+  warcprox:
+    image: tutum/haproxy
+    ports:
+      - "8181:80"
+    environment:
+      - BALANCE=roundrobin
+    links:
+      - wrender-worker
