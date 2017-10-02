@@ -1,0 +1,24 @@
+
+version: '2'
+
+services:
+
+  # The WARChiving proxy itself
+  warcprox-worker:
+    image: ukwa/warcprox
+    volumes:
+      - ./output/warcs:/output/warcs
+
+  # HAProxy load balancer
+  #
+  # An auto-scaling frontend for multiple warcprox instances working together.
+  # Seem to need the httpclose option to stop the proxy from dropping 'keep alive' connections
+  warcprox:
+    image: tutum/haproxy
+    ports:
+      - "3127:80"
+    environment:
+      - BALANCE=hdr(host)
+      - OPTION=redispatch,httpclose
+    links:
+      - warcprox-worker
