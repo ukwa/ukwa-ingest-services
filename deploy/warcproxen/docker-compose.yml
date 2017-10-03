@@ -6,19 +6,29 @@ services:
   # The WARChiving proxy itself
   warcprox-worker:
     image: ukwa/warcprox
+    expose:
+      - "8000"
+    environment:
+      - "EXCLUDE_PORTS=8888"
     volumes:
       - ./output/warcs:/output/warcs
 
   # HAProxy load balancer
+  # https://github.com/docker/dockercloud-haproxy
   #
   # An auto-scaling frontend for multiple warcprox instances working together.
   # Seem to need the httpclose option to stop the proxy from dropping 'keep alive' connections
   warcprox:
-    image: tutum/haproxy
+    image: dockercloud/haproxy
     ports:
       - "3127:80"
+      - "1936:1936"
     environment:
-      - BALANCE=hdr(host)
-      - OPTION=redispatch,httpclose
+      - "BALANCE=hdr(host)"
+      - "OPTION=redispatch,httpclose"
     links:
       - warcprox-worker
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+
