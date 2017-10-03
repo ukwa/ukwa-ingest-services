@@ -1,0 +1,34 @@
+# This override file augments the base configuration with the additional configuration that distingiuishes different deployments
+#
+# The settings below are for the 'beta' service.
+#
+version: '2'
+
+services:
+
+  # Integration points:
+  openwayback:
+    environment:
+      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
+      - "WAYBACK_URL_PREFIX=https://beta.webarchive.org.uk/act"
+      - "WAYBACK_URL_HOST=194.66.232.88" 
+
+  w3act:
+    environment:
+      - "SERVER_NAME=https://beta.webarchive.org.uk"
+      - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
+      - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
+      - "ENABLE_EVOLUTIONS=false"
+      - "APPLY_EVOLUTIONS=false"
+      - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
+    volumes:
+      - "/data/beta/dls-sips-submitted:/opt/data/dls_sips_copy"
+      - "/data/beta/dls/ebooks:/opt/data/w3act/ebooks:shared"
+      - "/data/beta/dls/ejournals/Drop:/opt/data/w3act/ejournals:shared"
+
+  # Disk volumes for individual services:
+  postgres:
+    volumes:
+      - "/data/beta/postgresql:/var/lib/postgresql/data"
+
