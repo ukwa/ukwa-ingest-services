@@ -36,7 +36,7 @@
 			# This Properties map is specified in the Java 'property list' text format
 			# http://java.sun.com/javase/6/docs/api/java/util/Properties.html#load%28java.io.Reader%29
 				metadata.operatorContactUrl=http://www.bl.uk/aboutus/legaldeposit/websites/websites/faqswebmaster/index.html
-				metadata.jobName=REPLACE_JOB_NAME
+				metadata.jobName=frequent-crawl
 			</value>
 		</property>
 	</bean>
@@ -75,7 +75,7 @@
 	<!-- SCOPE: rules for which discovered URIs to crawl; order is very 
 		 important because last decision returned other than 'NONE' wins. -->
 	<bean id="scope" class="org.archive.modules.deciderules.DecideRuleSequence">
-        <property name="logToFile" value="false" />
+        <property name="logToFile" value="true" />
 		<property name="rules">
 			<list>
 				<!-- Begin by REJECTing all... -->
@@ -155,9 +155,11 @@
 	<bean id="listRegexFilterOut" class="org.archive.modules.deciderules.MatchesListRegexDecideRule">
 		<property name="decision" value="REJECT" />
 		<property name="listLogicalOr" value="true" />
+      <!-- 
 		<property name="regexList">
 			<xi:include href="includes.xml" xpointer="xpointer(//includes/excludes/list)" />
 		</property>
+       -->
 	</bean>
 	<!-- ... ACCEPT those on the same Domain ... -->
 	<bean id="onDomainAccept" class="org.archive.modules.deciderules.surt.OnDomainsDecideRule">
@@ -257,7 +259,7 @@
 		<property name="digestAlgorithm" value="sha1" />
 	</bean>
 	<bean id="wrenderHttp" class="uk.bl.wap.crawler.processor.WrenderProcessor">
-		<property name="WrenderEndpoint" value="REPLACE_WRENDER_ENDPOINT" />
+		<property name="WrenderEndpoint" value="#{systemEnvironment['WRENDER_ENDPOINT'] ?: 'http://localhost:5000/wrender'}" />
         <property name="shouldProcessRule">
             <bean class="org.archive.modules.deciderules.DecideRuleSequence">
                 <property name="rules">
@@ -337,16 +339,16 @@
 	</bean>
     <!-- a 'top-level' bean that listens for URLs from AMQP -->
     <bean class="org.archive.crawler.frontier.AMQPUrlReceiver">
-      <property name="amqpUri" value="amqp://guest:guest@REPLACE_AMQP_HOST:5672/%2f" />
+      <property name="amqpUri" value="amqp://guest:guest@#{systemEnvironment['AMQP_HOST'] ?: localhost}:5672/%2f" />
       <property name="exchange" value="heritrix" />
-      <property name="queueName" value="REPLACE_JOB_NAME" />
+      <property name="queueName" value="#{metadata.jobName}" />
       <property name="durable" value="true"/>
       <property name="autoDelete" value="false"/>
     </bean>
     <!-- a processor that scans content for viruses -->
     <bean id="viralContent" class="uk.bl.wap.crawler.processor.ViralContentProcessor">
-		<property name="clamdHost" value="REPLACE_CLAMD_HOST" />
-   		<property name="clamdPort" value="REPLACE_CLAMD_PORT" />
+		<property name="clamdHost" value="#{systemEnvironment['CLAMD_HOST'] ?: localhost}" />
+   		<property name="clamdPort" value="3310" />
    		<property name="clamdTimeout" value="0" />
 		<property name="streamMaxLength" value="94371840"/>
 	</bean>
@@ -418,8 +420,8 @@
 		<property name="monitorConfigPaths" value="false" />
 		<property name="monitorPaths">
 			<list>
-				<value>/heritrix/output</value>
-				<value>/heritrix/state</value>
+				<value>./heritrix/output</value>
+				<value>./heritrix/state</value>
 			</list>
 		</property>
 	</bean>
@@ -461,7 +463,7 @@
 		<property name="directory" value="." />
 		<property name="storePaths">
 			<list>
-				<value>/heritrix/output/viral/REPLACE_JOB_NAME/${launchId}/</value>
+				<value>./heritrix/output/viral/${metadata.jobName}/${launchId}/</value>
 			</list>
 		</property>
 		<property name="writeRequests" value="true" />
@@ -498,7 +500,7 @@
 		<property name="directory" value="." />
 		<property name="storePaths">
 			<list>
-				<value>/heritrix/output/warcs/REPLACE_JOB_NAME/${launchId}/</value>
+				<value>./heritrix/output/warcs/${metadata.jobName}/${launchId}/</value>
 			</list>
 		</property>
 		<property name="writeRequests" value="true" />
@@ -512,7 +514,7 @@
     <property name="targetCeleryTask" value="crawl.tasks.uri_to_index"/>
     <property name="routingKey" value="crawl.tasks.uri_to_index"/>
     <property name="exchange" value="default"/>
-    <property name="amqpUri" value="amqp://guest:guest@REPLACE_AMQP_HOST:5672/%2f"/>
+    <property name="amqpUri" value="amqp://guest:guest@#{systemEnvironment['AMQP_HOST'] ?: localhost}:5672/%2f" />
     <property name="extraFields">
         <map>
           <entry key="job_name" value="#{metadata.jobName}"/>
@@ -525,7 +527,7 @@
     <property name="targetCeleryTask" value="crawl.tasks.uri_of_doc"/>
     <property name="routingKey" value="crawl.tasks.uri_of_doc"/>
     <property name="exchange" value="default"/>
-    <property name="amqpUri" value="amqp://guest:guest@REPLACE_AMQP_HOST:5672/%2f"/>
+    <property name="amqpUri" value="amqp://guest:guest@#{systemEnvironment['AMQP_HOST'] ?: localhost}:5672/%2f" />
     <property name="extraFields">
         <map>
           <entry key="job_name" value="#{metadata.jobName}"/>
@@ -539,7 +541,7 @@
                     <bean class="org.archive.modules.deciderules.RejectDecideRule"/>
                     <!-- ...ACCEPT if on or via a WatchedTarget... -->
                     <bean class="org.archive.modules.deciderules.surt.SurtPrefixedDecideRule">
-                      <property name="seedsAsSurtPrefixes" value="false"/>
+                      <property name="seedsAsSurtPrefixes" value="true"/>
                       <property name="alsoCheckVia" value="false"/>
                       <property name="surtsSourceFile" value="watched-surts.txt"/>
                       <property name="surtsDumpFile" value="watched-surts.dump"/>
@@ -598,7 +600,7 @@
 		<property name="recorderInBufferBytes" value="524288" />
 		<property name="recorderOutBufferBytes" value="16384" />
 		<!-- property name="checkpointerPeriod" value="-1" / -->
-		<property name="scratchDir" value="/heritrix/scratch/REPLACE_JOB_ROOT/" />
+		<property name="scratchDir" value="/heritrix/scratch/#{metadata.jobName}/" />
 	</bean>
 	
 	<!-- FRONTIER: Record of all URIs discovered and queued-for-collection -->
@@ -728,7 +730,7 @@
 	
 	<!-- CRAWLERLOGGERMODULE: shared logging facility -->
 	<bean id="loggerModule" class="org.archive.crawler.reporting.CrawlerLoggerModule">
-		<property name="path" value="/heritrix/output/logs/REPLACE_JOB_NAME/${launchId}/" />
+		<property name="path" value="/heritrix/output/logs/#{metadata.jobName}/${launchId}/" />
 		<property name="crawlLogPath" value="crawl.log" />
 		<property name="alertsLogPath" value="alerts.log" /> 
 		<property name="progressLogPath" value="progress-statistics.log" />
@@ -805,5 +807,8 @@
 		 to crawler-beans.cxml file, and tracking crawl files for web UI -->
 	<bean id="configPathConfigurer" class="org.archive.spring.ConfigPathConfigurer">
 	</bean>
+   <!-- 
 	<xi:include href="includes.xml" xpointer="xpointer(//includes/sheets/bean)" />
+    -->
 </beans>
+

@@ -14,11 +14,14 @@ services:
       - warcprox
 
   # HAProxy load balancer
-  warcprox:
-    image: tutum/haproxy
+  wrenderfarm:
+    image: dockercloud/haproxy
     ports:
-      - "8181:80"
+      - "8010:80"
+      - "1936:1936"
     environment:
       - BALANCE=roundrobin
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     links:
       - wrender-worker

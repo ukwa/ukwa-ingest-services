@@ -1,0 +1,58 @@
+
+version: '2'
+
+services:
+  # UKWA Heritrix
+  heritrix-worker:
+    image: ukwa/heritrix-worker
+    ports:
+      - "8443:8443"
+    environment:
+       - "JAVA_OPTS=-Xmx2g"
+       - "CLAMD_HOST=clamd"
+       - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
+       - "KAFKA_CRAWLED_TOPIC=frequent-crawl-log"
+       - "KAFKA_TOCRAWL_TOPIC=uris-to-crawl"
+       - "WRENDER_ENDPOINT=http://wrenderfarm:8010/render"
+       - "CDXSERVER_ENDPOINT=http://cdxserver:8080/fc"
+       - "JOB_NAME=frequent"
+    links:
+      - clamd
+      - kafka
+      - cdxserver
+    volumes_from:
+      - dvc:rw  
+
+  # Data Volume Container for crawler job definitions and outputs
+  dvc:
+    image: busybox
+    volumes:
+      - ./target/testing/heritrix/output:/heritrix/output
+      - ./target/testing/heritrix/state:/heritrix/state
+      - ./target/testing/heritrix/wren:/heritrix/wren
+
+  # Clamd virus scanning Service
+  clamd:
+    image: ukwa/clamd
+    ports:
+      - "3310:3310"
+
+  # Kafka
+  kafka:
+    image: spotify/kafka
+    ports:
+      - "2181:2181"
+      - "9092:9092"
+    environment:
+      - "ADVERTISED_HOST=kafka"
+      - "ADVERTISED_PORT=9092"
+
+  # tinycdxserver
+  cdxserver:
+    image: ukwa/tinycdxserver
+    command: "java -jar outbackcdx.jar -v -d /cdx-data -p 8080 -b 0.0.0.0"
+    ports:
+      - "9090:8080"
+  #  volumes:
+  #    - ./testing/cdx:/cdx-data
+
