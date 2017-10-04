@@ -1,14 +1,12 @@
-Pulse
-=====
+UKWA Ingest Services
+====================
 
-A pulsating crawl engine built around Heritrix3.
-
-[![Build Status](https://travis-ci.org/ukwa/pulse.png?branch=master)](https://travis-ci.org/ukwa/pulse)
+A crawl system built around Heritrix3.
 
 Documentation
 -------------
 
-See the [wiki](https://github.com/ukwa/pulse/wiki).
+See the [ukwa-documentation](https://github.com/ukwa/ukwa-documentation#ukwa-documentation) for an overview.
 
 License
 -------
