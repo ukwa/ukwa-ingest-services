@@ -9,6 +9,10 @@ This one routes all in-scope URIs via a Kafka queue, which can be used to recons
 
 To run it, it all you need is a 
 
+    $ docker-compose pull
+
+(to make sure the containers are up to date) and a 
+
     $ docker-compose up
 
 To inject some test seeds into the crawl, you need to put them in the Kafka queue. This can be done from the `control` server.
