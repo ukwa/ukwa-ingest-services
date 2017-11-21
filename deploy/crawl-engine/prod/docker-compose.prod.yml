@@ -44,3 +44,14 @@ services:
       - /data/prod/heritrix/output:/heritrix/output
       - /data/prod/heritrix/wren:/heritrix/wren
       - /data/prod/heritrix/task-state:/state
+
+  # Add monitoring hook:
+  filebeat:
+    image: docker.elastic.co/beats/filebeat:5.6.3
+    volumes:
+      - './filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml'
+    volumes_from:
+      - dvc:rw
+    extra_hosts:
+      - "logstash:192.168.45.101"
+

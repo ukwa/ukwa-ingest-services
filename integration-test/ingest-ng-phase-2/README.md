@@ -18,7 +18,8 @@ To run it, it all you need is a
 To inject some test seeds into the crawl, you need to put them in the Kafka queue. This can be done from the `control` server.
 
    $ docker exec control sh
-   # inject -a kafka:9092 -S uris-to-crawl http://acid.matkelly.com/
+   # inject -k kafka:9092 -S uris-to-crawl http://acid.matkelly.com/
+   # inject -k kafka:9092 -S uris-to-crawl http://crawl-test-site:4000/crawl-test-site/
 
 Which means "send the URL of the Archival Acid Test site to the `uris-to-crawl` Kafka queue and mark it as a seed."
 

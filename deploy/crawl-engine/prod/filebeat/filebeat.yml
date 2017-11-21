@@ -1,0 +1,17 @@
+filebeat:
+  # List of prospectors to fetch data.
+  prospectors:
+    -
+      paths:
+        - "/heritrix/output/logs/*/crawl.log"
+        - "/heritrix/output/logs/*/*/crawl.log"
+      type: log
+      document_type: heritrix
+      fields:
+        crawl_id: crawler-production
+
+output:
+  # Route logs to logstash:
+  logstash:
+    hosts: ["logstash:5044"]
+    topic: '%{[type]}'
