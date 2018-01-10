@@ -1,12 +1,41 @@
 
-version: "3"
+version: "3.2"
 
 services:
 
-  httpfs:
+  # Our slightly-modified version of HttpFS:
+  httpfs-worker:
     image: ukwa/httpfs:cdh3u5
-    ports:
-      - "14000:14000"
     volumes:
       - ./etc/hadoop:/etc/hadoop
+    environment:
+      - "SERVICE_PORTS=14000" # This is required so the dockercloud/haproxy knows what port to use
+    networks:
+      - httpfsnet
+    deploy:
+      replicas: 3
+
+  # HAProxy load balancer
+  httpfs-lb:
+    image: dockercloud/haproxy
+    ports:
+      - "14000:14000"
+      - "1936:1936" # For monitoring/stats
+    environment:
+      - "BALANCE=roundrobin"
+      - "TIMEOUT=connect 10s, client 1m, server 1m"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - httpfsnet
+    deploy: # There needs to be just one of these, located on a manager node so it can talk to Docker:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+# The auto-configuring HAProxy system appears to require that each proxied service runs in a dedicated virtual network
+networks:
+  httpfsnet:
+    driver: overlay
 
