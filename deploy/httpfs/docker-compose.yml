@@ -1,0 +1,12 @@
+
+version: "3"
+
+services:
+
+  httpfs:
+    image: ukwa/httpfs:cdh3u5
+    ports:
+      - "14000:14000"
+    volumes:
+      - ./etc/hadoop:/etc/hadoop
+
