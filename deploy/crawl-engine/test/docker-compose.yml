@@ -1,18 +1,24 @@
-version: "3"
+version: "3.2"
 
 services:
   # UKWA Heritrix
   heritrix-worker:
     image: ukwa/heritrix-worker
     environment:
-       - "JAVA_OPTS=-Xmx2g"
-       - "CLAMD_HOST=clamd"
-       - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
-       - "KAFKA_CRAWLED_TOPIC=frequent-crawl-log"
-       - "KAFKA_TOCRAWL_TOPIC=uris-to-crawl"
-       - "WRENDER_ENDPOINT=http://wrender:8010/render"
-       - "CDXSERVER_ENDPOINT=http://cdxserver:8080/fc"
-       - "JOB_NAME=frequent"
+      - "JAVA_OPTS=-Xmx2g"
+      - "MAX_TOE_THREADS=100"
+      - "CLAMD_HOST=clamd"
+      - "CLAMD_ENABLED=true"
+      - "KAFKA_BOOTSTRAP_SERVERS=crawler02.bl.uk:9094"
+      - "KAFKA_TOCRAWL_TOPIC=fc.to-crawl"
+      - "KAFKA_CRAWLED_TOPIC=fc.crawled"
+      - "WRENDER_ENDPOINT=http://wrender:8010/render"
+      - "WEBRENDER_ENABLED=true"
+      - "CDXSERVER_ENDPOINT=http://cdxserver:8080/fc"
+      - "JOB_NAME=frequent"
+      - "HERITRIX_USER=admin"
+      - "HERITRIX_PASSWORD=bl_uk"
+      - "LAUNCH_AUTOMATICALLY=true"
     volumes:
       - /data/test/heritrix/output:/heritrix/output
     deploy:
@@ -29,11 +35,42 @@ services:
 
   # Kafka
   # TODO Fix up state management:
+  zookeeper:
+    image: wurstmeister/zookeeper
+    ports:
+      - "2181:2181"
+#    volumes:
+#      - /data/test/zookeeper:data
+
   kafka:
-    image: spotify/kafka
+    image: wurstmeister/kafka
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
     environment:
-      - "ADVERTISED_HOST=kafka"
-      - "ADVERTISED_PORT=9092"
+      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      #BROKER_ID_COMMAND: "hostname | awk -F'-' '{print $$2}'"
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_PROTOCOL_NAME: OUTSIDE
+      KAFKA_ADVERTISED_HOST_NAME: crawler02.bl.uk
+      KAFKA_ADVERTISED_PORT: 9094
+      KAFKA_PROTOCOL_NAME: INSIDE
+      KAFKA_PORT: 9092
+      LOG_RETENTION_HOURS: -1
+      LOG_RETENTION_BYTES: -1
+      NUM_PARTITIONS: 128
+      KAFKA_CREATE_TOPICS: "fc.to-crawl:1024:1,fc.crawled:128:1"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+#      - /data/test/kafka:/kafka
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == crawler02
 
   # tinycdxserver
   # TODO Fix up state management:
@@ -42,8 +79,8 @@ services:
     command: "java -jar outbackcdx.jar -v -d /cdx-data -p 8080 -b 0.0.0.0"
     ports:
       - "9090:8080"
-  #  volumes:
-  #    - ./testing/cdx:/cdx-data
+#    volumes:
+#      - /data/test/cdxserver:/cdx-data
 
 
   # ----------------------------------------------
@@ -54,7 +91,10 @@ services:
   warcprox:
     image: ukwa/warcprox
     environment:
-      - "EXCLUDE_PORTS=8888"
+      - "KAFKA_BOOTSTRAP_SERVERS=crawler02.bl.uk:9094"
+      - "KAFKA_CRAWLED_TOPIC=fc.crawled"
+      - "KAFKA_ACKS=1"
+      - "CDXSERVER_ENDPOINT=http://cdxserver:8080/fc"
     volumes:
       - /data/test/heritrix/wren:/output/warcs
     deploy:
@@ -75,7 +115,65 @@ services:
       - "WARCPROX=warcprox:8000"
       - "LC_ALL=en_US.utf8"
       - "TMP=/tmp/webrender"
+    volumes:
+      - type: tmpfs
+        target: /tmp/webrender
     deploy:
       replicas: 2
+
+  # Monitoring 
+  heritrix3-exporter:
+    image: ukwa/heritrix3-exporter
+    ports:
+      - 9118:9118
+    environment:
+      - "HERITRIX_USER=admin"
+      - "HERITRIX_PASSWORD=bl_uk"
+    extra_hosts:
+      - "crawler01.bl.uk:192.168.45.16"
+      - "crawler04.bl.uk:192.168.45.12"
+
+  # ----------------------------------------------
+  # Test sites
+  # ----------------------------------------------
+
+  # Local version of the Archival Acid Test: http://acid.matkelly.com
+  acid-test:
+    image: ukwa/archival-acid-test
+    ports:
+      - "180:80"  
+    networks:
+      default:
+        aliases:
+          - acid.matkelly.com
+
+  # Local version of the UKWA test site: http://crawl-test-site.webarchive.org.uk
+  crawl-test:
+    image: ukwa/crawl-test-site
+    ports:
+      - "280:80"
+    networks:
+      default:
+        aliases:
+          - crawl-test-site.webarchive.org.uk
+
+  # ----------------------------------------------
+  # Providing system and container level metrics:
+  # ----------------------------------------------
+
+  cadvisor:
+    image: google/cadvisor
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /data/docker/:/var/lib/docker:ro
+    ports:
+      - 9393:8080
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == crawler02
+
 
 

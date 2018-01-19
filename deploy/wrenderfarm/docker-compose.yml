@@ -51,6 +51,16 @@ services:
         constraints:
           - node.hostname == crawler02
 
+  # Expose HAProxy stats in a form suitable for Prometheus:
+  haproxy-exporter:
+    image: quay.io/prometheus/haproxy-exporter
+    ports:
+      - '9101:9101'
+    command:
+      - "--haproxy.scrape-uri=http://stats:stats@wrenderfarm:1936/;csv"
+    networks:
+      - wrendernet
+
 networks:
   wrendernet:
     driver: overlay
