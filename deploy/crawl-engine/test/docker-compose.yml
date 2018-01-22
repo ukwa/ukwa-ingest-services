@@ -90,6 +90,7 @@ services:
   # The WARChiving proxy itself
   warcprox:
     image: ukwa/warcprox
+    command: "warcprox -b 0.0.0.0 -d /output/warcs --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet --plugin warcprox-plugins.listeners.KafkaCaptureFeed --plugin warcprox-plugins.listeners.UpdateOutbackCDX"
     environment:
       - "KAFKA_BOOTSTRAP_SERVERS=crawler02.bl.uk:9094"
       - "KAFKA_CRAWLED_TOPIC=fc.crawled"
@@ -132,6 +133,41 @@ services:
     extra_hosts:
       - "crawler01.bl.uk:192.168.45.16"
       - "crawler04.bl.uk:192.168.45.12"
+
+  # ----------------------------------------------
+  # QA Access
+  # ----------------------------------------------
+  warc-server:
+    image: ukwa/warc-server
+    ports:
+      - 8001:8000
+    environment:
+      - "WARC_PATHS=/heritrix/output,/heritrix/wren"
+    volumes:
+      - /data/test/heritrix/output:/heritrix/output
+      - /data/test/heritrix/wren:/heritrix/wren
+    deploy:
+      placement:
+        constraints:
+          - node.hostname == crawler02
+
+  # OpenWayback for QA
+  openwayback:
+    image: ukwa/waybacks
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    environment:
+      - "UKWA_OWB_VERSION=qa"
+      - "WAYBACK_URL_PORT=8080"
+      - "WAYBACK_PROXY_PORT=8090"
+      - "CDX_WHITELIST="
+      - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
+      - "WAYBACK_EMBARGO=0"
+      - "WAYBACK_HTTPFS_PREFIX=http://warc-server:8000/by-filename/"
+      - "CDX_INDEX_SERVER=http://cdxserver:8080/fc"
+      - "WAYBACK_URL_PREFIX=http://crawler02.bl.uk:8080"
+      - "WAYBACK_URL_HOST=crawler02.bl.uk"
 
   # ----------------------------------------------
   # Test sites
