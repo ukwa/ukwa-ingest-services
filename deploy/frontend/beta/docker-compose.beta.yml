@@ -15,6 +15,7 @@ services:
       - "WAYBACK_URL_HOST=194.66.232.88" 
 
   w3act:
+    image: ukwa/w3act:latest
     environment:
       - "SERVER_NAME=https://beta.webarchive.org.uk"
       - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
@@ -23,9 +24,9 @@ services:
       - "APPLY_EVOLUTIONS=false"
       - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
     volumes:
-      - "/data/beta/dls-sips-submitted:/opt/data/dls_sips_copy"
-      - "/data/beta/dls/ebooks:/opt/data/w3act/ebooks:shared"
-      - "/data/beta/dls/ejournals/Drop:/opt/data/w3act/ejournals:shared"
+      - "/data/test/dls-sips-submitted:/opt/data/dls_sips_copy"
+      - "/data/test/dls/ebooksirc:/opt/data/w3act/ebooks:shared"
+      - "/data/test/dls/ejournalsirc/Drop:/opt/data/w3act/ejournals:shared"
 
   # Disk volumes for individual services:
   postgres:

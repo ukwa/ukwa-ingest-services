@@ -1,0 +1,73 @@
+version: '2'
+
+# Note that trying to add the warc-base jar in ahead of time seems to cause issues with JAR-hell verison conflicts.
+
+services:
+
+  spark:
+    ukwa: ukwa/warcbase
+    command: "/spark-notebook/bin/spark-notebook -Dapplication.context=/ukwa/spark"
+    ports:
+      - "8887:9000"
+    volumes:
+      - /data/tdm/spark:/notebooks
+    volumes_from:
+      - dvc:ro
+    environment:
+      - "JAVA_OPTS=-Xmx1g"
+#      - "ADD_JARS=/warcbase-core/target/warcbase-core-0.1.0-SNAPSHOT-fatjar.jar"
+
+  jupyter:
+    image: jupyter/all-spark-notebook
+    command: "start-notebook.sh --NotebookApp.token='' --NotebookApp.base_url=/ukwa/jupyter"
+    ports:
+      - "8889:8888"
+    volumes:
+      - /data/tdm/jupyter:/home/jovyan/work
+    volumes_from:
+      - dvc:ro
+    environment:
+      - "SPARK_OPTS=\"--master=spark://master:7077 --jars /warcbase-core/target/warcbase-core-0.1.0-SNAPSHOT-fatjar.jar\""
+
+  zeppelin:
+    image: ukwa/docker-zeppelin
+    ports:
+      - "8890:8080"
+    volumes:
+      - /data/tdm/zeppelin:/opt/apache-zeppelin/notebook/
+    volumes_from:
+      - dvc:ro
+    environment:
+      - "MASTER=spark://master:7077"
+    links:
+      - master
+
+  dvc:
+    image: busybox
+    volumes:
+      - ./warcbase-core:/warcbase-core
+      - /data/tdm/shared:/data/tdm/shared
+
+  master:
+    image: singularities/spark:2.1
+    command: start-spark master
+    hostname: master
+    ports:
+      - "6066:6066"
+      - "7070:7070"
+      - "8080:8080"
+      - "50070:50070"
+    environment:
+      SPARK_DAEMON_MEMORY: 8g
+
+  worker:
+    image: singularities/spark:2.1
+    command: start-spark worker master
+    volumes_from:
+      - dvc:ro
+    environment:
+      SPARK_DAEMON_MEMORY: 8g
+      SPARK_WORKER_CORES: 2
+      SPARK_WORKER_MEMORY: 16g
+    links:
+      - master

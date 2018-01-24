@@ -1,5 +1,5 @@
 
-version: '2'
+version: "3"
 
 services:
   # UKWA Heritrix
@@ -20,16 +20,15 @@ services:
       - clamd
       - kafka
       - cdxserver
-    volumes_from:
-      - dvc:rw  
-
-  # Data Volume Container for crawler job definitions and outputs
-  dvc:
-    image: busybox
     volumes:
       - ./target/testing/heritrix/output:/heritrix/output
       - ./target/testing/heritrix/state:/heritrix/state
       - ./target/testing/heritrix/wren:/heritrix/wren
+    deploy:
+      replicas: 4
+      placement:
+        constraints:
+          - node.hostname == crawler01
 
   # Clamd virus scanning Service
   clamd:
@@ -38,6 +37,7 @@ services:
       - "3310:3310"
 
   # Kafka
+  # TODO Fix up state management:
   kafka:
     image: spotify/kafka
     ports:
@@ -48,6 +48,7 @@ services:
       - "ADVERTISED_PORT=9092"
 
   # tinycdxserver
+  # TODO Fix up state management:
   cdxserver:
     image: ukwa/tinycdxserver
     command: "java -jar outbackcdx.jar -v -d /cdx-data -p 8080 -b 0.0.0.0"
@@ -55,4 +56,6 @@ services:
       - "9090:8080"
   #  volumes:
   #    - ./testing/cdx:/cdx-data
+
+
 
