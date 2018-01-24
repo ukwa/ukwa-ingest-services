@@ -44,8 +44,8 @@ services:
     links:
       - openwayback
       - pdf2htmlex
-	depends_on:
-	  - postgres
+    depends_on:
+      - postgres
     extra_hosts:
       - "blsps.ad.bl.uk:194.66.238.125"
       - "pii.ad.bl.uk:172.16.101.47" 

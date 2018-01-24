@@ -31,5 +31,5 @@ services:
   postgres:
     volumes:
       - "/data/beta/postgresql:/var/lib/postgresql"
-	  - "/data/beta/postgresql/data:/var/lib/postgresql/data"
+      - "/data/beta/postgresql/data:/var/lib/postgresql/data"
 

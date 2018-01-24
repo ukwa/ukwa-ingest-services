@@ -2,7 +2,7 @@
 
 source /etc/sysconfig/w3act
 
-scp root@sh.wa.bl.uk:/backups/psql/crawler07.n45.bl.uk-pulsebeta_postgres_1-w3act.pgdump-20170329 w3act.pgdump
+#scp root@sh.wa.bl.uk:/backups/psql/crawler07.n45.bl.uk-pulsebeta_postgres_1-w3act.pgdump-20170329 w3act.pgdump
 mkdir -p /data/beta/postgresql
 cp w3act.pgdump /data/beta/postgresql/
 
