@@ -103,7 +103,7 @@ services:
 
   # PhantomJS web page rendering service
   webrender:
-    image: ukwa/webrender-phantomjs:2.0.4
+    image: ukwa/webrender-phantomjs:2.0.8
     environment:
       - "WARCPROX=warcprox:8000"
       - "LC_ALL=en_US.utf8"
@@ -122,8 +122,6 @@ services:
       - "TMP=/tmp/warcprox"
     ports:
       - "${INTERNAL_IP}:8000:8000"
-    links:
-      - openwayback
     ulimits:
       nproc: 2000 # See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
       #nofiles: 4000

@@ -9,8 +9,8 @@ services:
   # Integration points:
   shepherd:
     environment:
-      - "W3ACT_URL=http://act:9000/act/"
-      - "WAYBACK_URL=http://act:8080/wayback"
+      - "W3ACT_URL=https://www.webarchive.org.uk/act/"
+      - "WAYBACK_URL=http://wayback:8080/wayback"
       - "CDXSERVER_URL=http://bigcdx:8080/data-heritrix"
       - "HDFS_OUTPUT_PREFIX=/"
       - "HDFS_NAMENODE_HOST=nellie"
@@ -20,12 +20,12 @@ services:
       - "WEBHDFS_USER=heritrix"
       - "WEBHDFS_PREFIX=http://hdfs:14000/webhdfs/v1"
     extra_hosts:
-      - "act:127.0.0.1"
+      - "wayback:194.66.232.89"
 
   # Disk volumes for individual services:
   warcprox:
     volumes:
-      - "/data/test/tmp/warcprox:/tmp/warcprox"
+      - "/data/prod/tmp/warcprox:/tmp/warcprox"
 
   webrender:
     volumes:
@@ -49,7 +49,7 @@ services:
   filebeat:
     image: docker.elastic.co/beats/filebeat:5.6.3
     volumes:
-      - './filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml'
+      - '${PWD}/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml'
     volumes_from:
       - dvc:rw
     extra_hosts:

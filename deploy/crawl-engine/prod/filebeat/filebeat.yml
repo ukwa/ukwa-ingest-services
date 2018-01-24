@@ -6,9 +6,11 @@ filebeat:
         - "/heritrix/output/logs/*/crawl.log"
         - "/heritrix/output/logs/*/*/crawl.log"
       type: log
-      document_type: heritrix
+      ignore_older: 24h
+      close_inactive: 1h
       fields:
         crawl_id: crawler-production
+        document_type: heritrix
 
 output:
   # Route logs to logstash:

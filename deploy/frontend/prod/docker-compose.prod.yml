@@ -12,20 +12,22 @@ services:
       - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
       - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
       - "WAYBACK_URL_PREFIX=https://www.webarchive.org.uk/act"
-      - "WAYBACK_URL_HOST=194.66.232.88" 
+      - "WAYBACK_URL_HOST=194.66.232.89" 
 
   w3act:
+    # Add experimental option, forcing restart on OOM:
+    #command: /w3act/bin/w3act -J-Xmx1g -XX:+ExitOnOutOfMemoryError -Dconfig.file=/w3act/conf/docker.conf -Dpidfile.path=/dev/null
     environment:
       - "SERVER_NAME=https://www.webarchive.org.uk"
-      - "PII_URI=http://pii.ad.bl.uk/pii/vdc"
+      - "PII_URI=http://piiirc.ad.bl.uk/pii/vdc"
       - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
       - "ENABLE_EVOLUTIONS=false"
       - "APPLY_EVOLUTIONS=false"
       - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
     volumes:
-      - "/data/prod/dls-sips-submitted:/opt/data/dls_sips_copy"
-      - "/data/prod/dls/ebooks:/opt/data/w3act/ebooks:shared"
-      - "/data/prod/dls/ejournals/Drop:/opt/data/w3act/ejournals:shared"
+      - "/data/test/dls-sips-submitted:/opt/data/dls_sips_copy"
+      - "/data/test/dls/ebooksirc:/opt/data/w3act/ebooks:shared"
+      - "/data/test/dls/ejournalsirc/Drop:/opt/data/w3act/ejournals:shared"
 
   # Disk volumes for individual services:
   postgres:
