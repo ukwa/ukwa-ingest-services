@@ -12,7 +12,7 @@ services:
       - "WAYBACK_URL_PORT=8080"
       - "WAYBACK_PROXY_PORT=8090"
       - "CDX_WHITELIST="
-      - "WAYBACK_EXCLUDE_FILE=/waybacks/wayback-qa/target/ROOT/WEB-INF/classes/exclude.txt"
+      - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
       - "WAYBACK_EMBARGO=0"
 
   # PDF to HTML service

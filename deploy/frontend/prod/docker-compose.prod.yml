@@ -33,4 +33,5 @@ services:
   postgres:
     volumes:
       - "/data/prod/postgresql:/var/lib/postgresql/data"
+      - "/data/prod/postgresql-backups:/var/lib/postgresql/backups"
 

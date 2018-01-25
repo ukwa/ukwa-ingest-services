@@ -9,7 +9,7 @@ services:
   # Integration points:
   shepherd:
     environment:
-      - "W3ACT_URL=https://www.webarchive.org.uk/act/"
+      - "W3ACT_URL=http://crawler03.bl.uk:9000/act/"
       - "WAYBACK_URL=http://wayback:8080/wayback"
       - "CDXSERVER_URL=http://bigcdx:8080/data-heritrix"
       - "HDFS_OUTPUT_PREFIX=/"
