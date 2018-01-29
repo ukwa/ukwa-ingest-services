@@ -12,6 +12,8 @@ services:
       - "SERVICE_PORTS=14000" # This is required so the dockercloud/haproxy knows what port to use
     networks:
       - httpfsnet
+    extra_hosts:
+      - "nellie:192.168.1.2"
     deploy:
       replicas: 3
 
@@ -19,7 +21,7 @@ services:
   httpfs-lb:
     image: dockercloud/haproxy
     ports:
-      - "14000:14000"
+      - "14000:80"
       - "1936:1936" # For monitoring/stats
     environment:
       - "BALANCE=roundrobin"
