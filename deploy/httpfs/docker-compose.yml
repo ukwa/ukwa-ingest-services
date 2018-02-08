@@ -4,8 +4,9 @@ version: "3.2"
 services:
 
   # Our slightly-modified version of HttpFS:
-  httpfs-worker:
+  worker:
     image: ukwa/httpfs:cdh3u5
+    user: tomcat
     volumes:
       - ./etc/hadoop:/etc/hadoop
     environment:
@@ -18,7 +19,7 @@ services:
       replicas: 3
 
   # HAProxy load balancer
-  httpfs-lb:
+  lb:
     image: dockercloud/haproxy
     ports:
       - "14000:80"
@@ -35,6 +36,17 @@ services:
       placement:
         constraints:
           - node.role == manager
+
+  # Expose HAProxy stats in a form suitable for Prometheus:
+  metrics:
+    image: quay.io/prometheus/haproxy-exporter
+    ports:
+      - '9101:9101'
+    command:
+      - "--haproxy.scrape-uri=http://stats:stats@lb:1936/;csv"
+    networks:
+      - httpfsnet
+
 
 # The auto-configuring HAProxy system appears to require that each proxied service runs in a dedicated virtual network
 networks:
