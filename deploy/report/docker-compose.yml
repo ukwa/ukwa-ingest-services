@@ -1,0 +1,23 @@
+version: "3.2"
+
+services:
+
+  hugo:
+    image: jojomi/hugo:latest
+    volumes:
+      - /data/ukwa-reports/:/src
+      - /data/ukwa-reports-html/:/output
+    environment:
+      - HUGO_REFRESH_TIME=3600
+      - HUGO_THEME=minimal
+      - HUGO_BASEURL=http://ingest.n45.wa.bl.uk
+    restart: always
+
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - /data/ukwa-reports-html/:/usr/share/nginx/html:ro 
+
+
