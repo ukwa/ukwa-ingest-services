@@ -6,6 +6,8 @@ services:
   # The WARChiving proxy itself
   warcprox-worker:
     image: ukwa/warcprox
+    #command: "warcprox -b 0.0.0.0 -d /output/warcs --base32 -z --rollover-idle-time 3600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet --plugin warcprox-plugins.listeners.KafkaCaptureFeed --plugin warcprox-plugins.listeners.UpdateOutbackCDX 2>&1 | tee /output/log"
+    command: "warcprox -b 0.0.0.0 -d /output/warcs --base32 -z --rollover-idle-time 3600 --dedup-db-file /dev/null --stats-db-file /dev/null"
     expose:
       - "8000"
     environment:
