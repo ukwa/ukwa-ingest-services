@@ -1,4 +1,4 @@
-version: '2'
+version: '3.2'
 
 # Note that trying to add the warc-base jar in ahead of time seems to cause issues with JAR-hell verison conflicts.
 
