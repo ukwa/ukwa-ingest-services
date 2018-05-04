@@ -6,7 +6,7 @@
 <configuration>
 <property>
   <name>fs.default.name</name>
-  <value>hdfs://nellie:54310</value>
+  <value>hdfs://namenode:54310</value>
 </property>
 
 <property>
