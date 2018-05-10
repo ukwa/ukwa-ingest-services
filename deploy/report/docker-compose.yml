@@ -8,7 +8,7 @@ services:
       - /data/ukwa-reports/:/src
       - /data/ukwa-reports-html/:/output
     environment:
-      - HUGO_REFRESH_TIME=3600
+      - HUGO_REFRESH_TIME=13600
       - HUGO_THEME=minimal
       - HUGO_BASEURL=http://ingest.n45.wa.bl.uk
     restart: always
@@ -20,15 +20,8 @@ services:
     volumes:
       - /data/ukwa-reports-html/:/usr/share/nginx/html:ro 
 
-  # Also run an internal Jupyter instance for ad-hoc reporting
-  jupyter:
-    image: jupyter/all-spark-notebook
-    command: "start-notebook.sh --NotebookApp.token='' --NotebookApp.base_url=/ukwa/jupyter"
+  logviewer:
+    image: ukwa/crawl-log-viewer
     ports:
-      - "8889:8888"
-    volumes:
-      - /data:/home/jovyan/work
-
-
-
+     - "8000:8000"
 

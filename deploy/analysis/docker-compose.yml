@@ -24,6 +24,10 @@ services:
       - "8889:8888"
     volumes:
       - /data/tdm/jupyter:/home/jovyan/work
+      - /data:/home/jovyan/data
+      - /mnt/gluster/wa/:/home/jovyan/report-data
+      - /root/github/ukwa-manage:/home/jovyan/ukwa-manage
+      - /var/task-state:/home/jovyan/task-state
     volumes_from:
       - dvc:ro
     environment:
@@ -46,7 +50,7 @@ services:
     image: busybox
     volumes:
       - ./warcbase-core:/warcbase-core
-      - /data/tdm/shared:/data/tdm/shared
+      - /data/tdm/shared:/home/jovyan/tdm-data
 
   master:
     image: singularities/spark:2.1
