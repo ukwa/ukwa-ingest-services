@@ -9,7 +9,7 @@ services:
       - "MAX_TOE_THREADS=100"
       - "CLAMD_HOST=clamd"
       - "CLAMD_ENABLED=true"
-      - "KAFKA_BOOTSTRAP_SERVERS=crawler02.bl.uk:9094"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
       - "KAFKA_TOCRAWL_TOPIC=fc.to-crawl"
       - "KAFKA_CRAWLED_TOPIC=fc.crawled"
       - "WRENDER_ENDPOINT=http://wrender:8010/render"
@@ -33,44 +33,46 @@ services:
     deploy:
       replicas: 4
 
-  # Kafka
-  # TODO Fix up state management:
+
+  # Kafka used as main mechanism for URL logging
+  # Needs a Zookeeper too
+  # ----
   zookeeper:
     image: wurstmeister/zookeeper
     ports:
-      - "2181:2181"
-#    volumes:
-#      - /data/test/zookeeper:data
+      - 2181:2181
 
   kafka:
-    image: wurstmeister/kafka
+    image: wurstmeister/kafka:1.1.0
     ports:
       - target: 9094
         published: 9094
         protocol: tcp
         mode: host
     environment:
-      #HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
-      #BROKER_ID_COMMAND: "hostname | awk -F'-' '{print $$2}'"
-      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.45.19
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_ADVERTISED_PROTOCOL_NAME: OUTSIDE
-      KAFKA_ADVERTISED_HOST_NAME: crawler02.bl.uk
-      KAFKA_ADVERTISED_PORT: 9094
-      KAFKA_PROTOCOL_NAME: INSIDE
-      KAFKA_PORT: 9092
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://192.168.45.19:9094
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       LOG_RETENTION_HOURS: -1
       LOG_RETENTION_BYTES: -1
       NUM_PARTITIONS: 128
       KAFKA_CREATE_TOPICS: "fc.to-crawl:1024:1,fc.crawled:128:1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-#      - /data/test/kafka:/kafka
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == crawler02
+      - /data/test/kafka:/kafka
+    #deploy:
+    #  mode: global
+
+  # Kafka UI
+  kafka-ui:
+    image: janschultecom/docker-trifecta
+    ports:
+      - "9000:9000"
+    environment:
+      - "ZK_HOST=zookeeper:2181"
 
   # tinycdxserver
   # TODO Fix up state management:
