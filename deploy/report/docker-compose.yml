@@ -5,23 +5,23 @@ services:
   hugo:
     image: jojomi/hugo:latest
     volumes:
-      - /data/ukwa-reports/:/src
-      - /data/ukwa-reports-html/:/output
+      - /mnt/gluster/wa/www/ukwa-reports/:/src
+      - /mnt/gluster/wa/www/html/ukwa-reports/:/output
     environment:
-      - HUGO_REFRESH_TIME=13600
+      - HUGO_REFRESH_TIME=3600
       - HUGO_THEME=minimal
-      - HUGO_BASEURL=http://ingest.n45.wa.bl.uk
+      - HUGO_BASEURL=http://intranet.wa.bl.uk/ukwa-reports
     restart: always
+
+  logviewer:
+    image: ukwa/crawl-log-viewer
+    ports:
+     - "8000:8000"
 
   nginx:
     image: nginx
     ports:
       - "80:80"
     volumes:
-      - /data/ukwa-reports-html/:/usr/share/nginx/html:ro 
-
-  logviewer:
-    image: ukwa/crawl-log-viewer
-    ports:
-     - "8000:8000"
+      - /mnt/gluster/wa/www/html/:/usr/share/nginx/html:ro
 
