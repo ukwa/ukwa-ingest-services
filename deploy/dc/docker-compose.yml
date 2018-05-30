@@ -15,28 +15,30 @@ services:
       - "KAFKA_TOCRAWL_TOPIC=dc.discovered"
       - "KAFKA_CRAWLED_TOPIC=dc.crawled"
       - "WRENDER_ENDPOINT=http://wrender:8010/render"
-      - "WEBRENDER_ENABLED=false"
+      - "WEBRENDER_ENABLED=false" # Don't render web-pages from within Heritrix for this crawl
       - "CDXSERVER_ENDPOINT=http://cdxserver:8080/dc"
       - "JOB_NAME=frequent"
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
       - "LAUNCH_AUTOMATICALLY=true"
+      # Scope changes to make this a Domain Crawl
+      - "SURTS_SOURCE_FILE=domain-surts.txt" # Use the domain SURT scope
+      - "GEOIP_GB_ENABLED=true" # Also allow GeoIP-based inclusion (GB is in scope)
     volumes:
       - /data/dc/heritrix/output:/heritrix/output
     deploy:
       replicas: 4
 
   # ----------------------------------------------
-  # Clamd virus scanning Service
+  # Clamd virus scanning service
   # ----------------------------------------------
   clamd:
     image: ukwa/clamd
     deploy:
       replicas: 4
 
-
   # ----------------------------------------------
-  # Kafka used as main mechanism for URL logging
+  # Kafka: used for URI routing and logging
   # ----------------------------------------------
   # Needs a Zookeeper too
   # ----
@@ -53,10 +55,10 @@ services:
         protocol: tcp
         mode: host
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: 192.168.45.19
+      KAFKA_ADVERTISED_HOST_NAME: ${EXTERNAL_HOSTNAME}
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://192.168.45.19:9094
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://${EXTERNAL_HOSTNAME}:9094
       KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       LOG_RETENTION_HOURS: -1
@@ -90,42 +92,6 @@ services:
 
 
   # ----------------------------------------------
-  # WARC Proxy
-  # ----------------------------------------------
-
-  # The WARChiving proxy itself
-  warcprox:
-    image: ukwa/warcprox
-    command: "warcprox -b 0.0.0.0 -d /output/warcs --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet --plugin warcprox-plugins.listeners.KafkaCaptureFeed --plugin warcprox-plugins.listeners.UpdateOutbackCDX"
-    environment:
-      - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
-      - "KAFKA_CRAWLED_TOPIC=dc.crawled"
-      - "KAFKA_ACKS=1"
-      - "CDXSERVER_ENDPOINT=http://cdxserver:8080/dc"
-    volumes:
-      - /data/dc/heritrix/wren:/output/warcs
-    deploy:
-      replicas: 1
-
-
-  # ----------------------------------------------
-  # Web Render Farm
-  # ----------------------------------------------
-
-  # PhantomJS web page rendering service
-  wrender:
-    image: ukwa/webrender-phantomjs:2.0.8
-    environment:
-      - "WARCPROX=warcprox:8000"
-      - "LC_ALL=en_US.utf8"
-      - "TMP=/tmp/webrender"
-    volumes:
-      - type: tmpfs
-        target: /tmp/webrender
-    deploy:
-      replicas: 1
-
-  # ----------------------------------------------
   # Monitoring: Expose crawl metrics to Prometheus
   # ----------------------------------------------
   heritrix3-exporter:
@@ -135,13 +101,14 @@ services:
     environment:
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
-    extra_hosts:
-      - "crawler01.bl.uk:192.168.45.16"
-      - "crawler04.bl.uk:192.168.45.12"
+    volumes:
+      -crawl-jobs.json:/monitor/crawl-jobs.json
 
   # ----------------------------------------------
-  # QA Access
+  # QA and mid-crawl playback
   # ----------------------------------------------
+
+  # This resolves WARC files locally, by filename:
   warc-server:
     image: ukwa/warc-server
     ports:
@@ -152,7 +119,7 @@ services:
       - /data/dc/heritrix/output:/heritrix/output
       - /data/dc/heritrix/wren:/heritrix/wren
 
-  # OpenWayback for mid-crawl playback/QA
+  # OpenWayback instance:
   openwayback:
     image: ukwa/waybacks
     ports:
@@ -167,6 +134,6 @@ services:
       - "WAYBACK_EMBARGO=0"
       - "WAYBACK_HTTPFS_PREFIX=http://warc-server:8000/by-filename/"
       - "CDX_INDEX_SERVER=http://cdxserver:8080/dc"
-      - "WAYBACK_URL_PREFIX=http://crawler04.bl.uk:8080"
-      - "WAYBACK_URL_HOST=crawler04.bl.uk"
+      - "WAYBACK_URL_PREFIX=http://${EXTERNAL_HOSTNAME}:8080"
+      - "WAYBACK_URL_HOST=${EXTERNAL_HOSTNAME}"
 
