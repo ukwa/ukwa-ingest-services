@@ -1,100 +1,172 @@
-version: '2'
+version: "3.2"
 
 services:
-  # UKWA DC Heritrixen
-  ukwa-h3-dc-1:
-    hostname: ukwa-h3-dc-1
-    build: ../ukwa-heritrix-lbs
-    ports:
-      - "8443:8443"
-    links:
-      - clamd
-      - amqp
-      - webrender
+  # ----------------------------------------------
+  # UKWA Heritrix
+  # ----------------------------------------------
+  heritrix-worker:
+    image: ukwa/heritrix-worker
     environment:
-      - "H3_QUEUE_NAME=ukwa-h3-dc-1"
+      - "JAVA_OPTS=-Xmx8g"
+      - "MAX_TOE_THREADS=100"
+      - "CLAMD_HOST=clamd"
+      - "CLAMD_ENABLED=true"
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
+      - "KAFKA_TOCRAWL_TOPIC=dc.discovered"
+      - "KAFKA_CRAWLED_TOPIC=dc.crawled"
+      - "WRENDER_ENDPOINT=http://wrender:8010/render"
+      - "WEBRENDER_ENABLED=false"
+      - "CDXSERVER_ENDPOINT=http://cdxserver:8080/dc"
+      - "JOB_NAME=frequent"
+      - "HERITRIX_USER=admin"
+      - "HERITRIX_PASSWORD=bl_uk"
+      - "LAUNCH_AUTOMATICALLY=true"
     volumes:
-      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
-    volumes_from:
-      - dvc:rw
+      - /data/dc/heritrix/output:/heritrix/output
+    deploy:
+      replicas: 4
 
-  ukwa-h3-dc-2:
-    build: ../ukwa-heritrix-lbs
-    ports:
-      - "8444:8443"
-    links:
-      - clamd
-      - amqp
-      - webrender
-    environment:
-      - "H3_QUEUE_NAME=ukwa-h3-dc-2"
-    volumes:
-      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
-    volumes_from:
-      - dvc:rw
-
-  ukwa-h3-dc-3:
-    build: ../ukwa-heritrix-lbs
-    ports:
-      - "8445:8443"
-    links:
-      - clamd
-      - amqp
-      - webrender
-    environment:
-      - "H3_QUEUE_NAME=ukwa-h3-dc-3"
-    volumes:
-      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
-    volumes_from:
-      - dvc:rw
-  
-  ukwa-h3-dc-4:
-    build: ../ukwa-heritrix-lbs
-    ports:
-      - "8446:8443"
-    links:
-      - clamd
-      - amqp
-      - webrender
-    environment:
-      - "H3_QUEUE_NAME=ukwa-h3-dc-4"
-    volumes:
-      - ./testing-dc/dc-4/heritrix/output:/heritrix/output
-    volumes_from:
-      - dvc:rw  
-
-  # Data Volume Container for the shared data:
-  dvc:
-    image: busybox
-    volumes:
-      - ./testing-dc/jobs:/jobs
-
+  # ----------------------------------------------
   # Clamd virus scanning Service
+  # ----------------------------------------------
   clamd:
     image: ukwa/clamd
+    deploy:
+      replicas: 4
 
-  # RabbitMQ
-  amqp:
-    image: rabbitmq:3.5-management
+
+  # ----------------------------------------------
+  # Kafka used as main mechanism for URL logging
+  # ----------------------------------------------
+  # Needs a Zookeeper too
+  # ----
+  zookeeper:
+    image: wurstmeister/zookeeper
     ports:
-      - "15672:15672"  # management port (guest:guest)
-    logging:
-      driver: none  
+      - 2181:2181
 
-  # PhantomJS web page rendering service
-  webrender:
-    build: ../webrender-phantomjs
+  kafka:
+    image: wurstmeister/kafka:1.1.0
+    ports:
+      - target: 9094
+        published: 9094
+        protocol: tcp
+        mode: host
     environment:
-      - "PHANTOMJS_BINARY=/opt/phantomjs/bin/phantomjs"
-      - "WARCPROX=warcprox:8000"
-    links:
-      - warcprox
+      KAFKA_ADVERTISED_HOST_NAME: 192.168.45.19
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://192.168.45.19:9094
+      KAFKA_LISTENERS: INSIDE://:9092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      LOG_RETENTION_HOURS: -1
+      LOG_RETENTION_BYTES: -1
+      NUM_PARTITIONS: 128
+      KAFKA_CREATE_TOPICS: "dc.discovered:1024:1,dc.crawled:128:1"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/dc/kafka:/kafka
+    deploy:
+      mode: global
 
-  # WARC Proxy, with de-duplication disabled and a rapid rollover:
+  # Kafka UI
+  kafka-ui:
+    image: janschultecom/docker-trifecta
+    ports:
+      - "9000:9000"
+    environment:
+      - "ZK_HOST=zookeeper:2181"
+
+  # ----------------------------------------------
+  # OutbackCDX use to record crawl state
+  # ----------------------------------------------
+  cdxserver:
+    image: ukwa/tinycdxserver
+    command: "java -jar outbackcdx.jar -v -d /cdx-data -p 8080 -b 0.0.0.0"
+    ports:
+      - "9090:8080"
+    volumes:
+      - /data/dc/cdxserver:/cdx-data
+
+
+  # ----------------------------------------------
+  # WARC Proxy
+  # ----------------------------------------------
+
+  # The WARChiving proxy itself
   warcprox:
     image: ukwa/warcprox
-    command: "warcprox -b 0.0.0.0 -d /heritrix/wren --base32 -z --rollover-idle-time 60 -j /dev/null"
-    ulimits:
-      nproc: 65535 # We need to set this, because the default is '-1' which warcprox uses and then *no threads* are created! See https://github.com/internetarchive/warcprox/blob/2.x/warcprox/warcproxy.py#L413
-    volumes_from:
-      - dvc:rw  
+    command: "warcprox -b 0.0.0.0 -d /output/warcs --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet --plugin warcprox-plugins.listeners.KafkaCaptureFeed --plugin warcprox-plugins.listeners.UpdateOutbackCDX"
+    environment:
+      - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
+      - "KAFKA_CRAWLED_TOPIC=dc.crawled"
+      - "KAFKA_ACKS=1"
+      - "CDXSERVER_ENDPOINT=http://cdxserver:8080/dc"
+    volumes:
+      - /data/dc/heritrix/wren:/output/warcs
+    deploy:
+      replicas: 1
+
+
+  # ----------------------------------------------
+  # Web Render Farm
+  # ----------------------------------------------
+
+  # PhantomJS web page rendering service
+  wrender:
+    image: ukwa/webrender-phantomjs:2.0.8
+    environment:
+      - "WARCPROX=warcprox:8000"
+      - "LC_ALL=en_US.utf8"
+      - "TMP=/tmp/webrender"
+    volumes:
+      - type: tmpfs
+        target: /tmp/webrender
+    deploy:
+      replicas: 1
+
+  # ----------------------------------------------
+  # Monitoring: Expose crawl metrics to Prometheus
+  # ----------------------------------------------
+  heritrix3-exporter:
+    image: ukwa/heritrix3-exporter
+    ports:
+      - 9118:9118
+    environment:
+      - "HERITRIX_USER=admin"
+      - "HERITRIX_PASSWORD=bl_uk"
+    extra_hosts:
+      - "crawler01.bl.uk:192.168.45.16"
+      - "crawler04.bl.uk:192.168.45.12"
+
+  # ----------------------------------------------
+  # QA Access
+  # ----------------------------------------------
+  warc-server:
+    image: ukwa/warc-server
+    ports:
+      - 8001:8000
+    environment:
+      - "WARC_PATHS=/heritrix/output,/heritrix/wren"
+    volumes:
+      - /data/dc/heritrix/output:/heritrix/output
+      - /data/dc/heritrix/wren:/heritrix/wren
+
+  # OpenWayback for mid-crawl playback/QA
+  openwayback:
+    image: ukwa/waybacks
+    ports:
+      - "8080:8080"
+      - "8090:8090"
+    environment:
+      - "UKWA_OWB_VERSION=qa"
+      - "WAYBACK_URL_PORT=8080"
+      - "WAYBACK_PROXY_PORT=8090"
+      - "CDX_WHITELIST="
+      - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
+      - "WAYBACK_EMBARGO=0"
+      - "WAYBACK_HTTPFS_PREFIX=http://warc-server:8000/by-filename/"
+      - "CDX_INDEX_SERVER=http://cdxserver:8080/dc"
+      - "WAYBACK_URL_PREFIX=http://crawler04.bl.uk:8080"
+      - "WAYBACK_URL_HOST=crawler04.bl.uk"
+
