@@ -9,11 +9,11 @@ Crawl Server Checklist
 
 Before using a service for crawls, we need:
 
-- Docker Swarm installed.
 - GlusterFS mounted as `/data/` on all Swarm nodes.
 - An ethernet connection with access to the world wide web.
 - A DNS service that can cope with very heavy usage (we usually use Google DNS servers).
 - The `nofiles` limit set to be reasonably high (e.g. 10240 instead of the default 1024).
+- Docker Swarm initialised.
 - ...???...
 
 
@@ -23,7 +23,7 @@ Deploying the crawl services
 First, set up the following environment variable, which defines the externally accessible
 hostname you wish the services to be available on, e.g.
 
-    export EXTERNAL_HOSTNAME=crawler04.n45.bl.uk
+    export EXTERNAL_HOSTNAME=crawler04.bl.uk
 
 Then, you should be able to start the stack deployment:
 
