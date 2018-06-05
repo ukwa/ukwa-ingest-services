@@ -20,10 +20,11 @@ Before using a service for crawls, we need:
 Deploying the crawl services
 ----------------------------
 
-First, set up the following environment variable, which defines the externally accessible
-hostname you wish the services to be available on, e.g.
+First, set up the following environment variable, which defines the server
+hostname that runs the containers that provide the dockerised services. As Docker Swarm is used here, dockerised services can be accessible from other servers, so this identifies the accessible name (as opposed to the hostnames internal to the dockerised services). 
+E.g.
 
-    export EXTERNAL_HOSTNAME=crawler04.bl.uk
+    export EXTERNAL_HOSTNAME=crawler04.n45.bl.uk
 
 Then, you should be able to start the stack deployment:
 
@@ -62,7 +63,7 @@ Now add the endpoint to the section that looks like this:
    # Crawl Metrics
   - job_name: 'crawl-h3'
     static_configs:
-      - targets: ['crawler03.n45:9118']
+      - targets: ['crawler04.n45.bl.uk:9118']
 ```
 
 e.g.
@@ -71,10 +72,10 @@ e.g.
    # Crawl Metrics
   - job_name: 'crawl-h3'
     static_configs:
-      - targets: ['crawler03.n45:9118', crawler04.n45:9118]
+      - targets: ['crawler04.n45.bl.uk:9118']
 ```
 
-(note that because our n45 addresses are not in DNS, these aliases have to be added to the `ukwa-monitor` Docker configuration)
+(note that because our n45.bl.uk addresses are not in DNS, these aliases have to be added to the `ukwa-monitor` Docker configuration)
 
 Now you can run:
 
