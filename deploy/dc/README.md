@@ -33,7 +33,7 @@ Then, you should be able to start the stack deployment:
 If you run `docker service ls` you should eventually see all services have started up
 the requested number of replicas. If any are stuck, you can use:
 
-    `docker service ps --no-trunc`
+    `docker service ps <service name> --no-trunc`
 
 and this will list the recent attempts to start the service and any errors,
 e.g. if the volume the script attempts to mount is not present.
