@@ -101,7 +101,7 @@ You can see the options for the `launch` command, like this:
 
 For example you can run the test crawl by running this command:
 
-    docker run ukwa/ukwa-manage launch -k ${EXTERNAL_HOSTNAME}:9094 dc.discovered http://crawl-test-site.webarchive.org.uk/
+    docker run ukwa/ukwa-manage launch -k ${EXTERNAL_HOSTNAME}:9094 dc.discovered http://data.webarchive.org.uk/crawl-test-site/
 
 Which means enqueue the crawl test site URL on the `dc.discovered` Kafka queue. For the usual frequent crawl we'd have to mark the URL as a seed (using `-S`) so that the scope of the crawl is widened and the page gets rendered, but for the domain crawl the scope is already wide enough and there is no page rendering.
 
