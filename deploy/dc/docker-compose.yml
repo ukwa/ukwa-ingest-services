@@ -102,7 +102,7 @@ services:
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
     volumes:
-      -crawl-jobs.json:/monitor/crawl-jobs.json
+      - ./crawl-jobs.json:/monitor/crawl-jobs.json
 
   # ----------------------------------------------
   # QA and mid-crawl playback
