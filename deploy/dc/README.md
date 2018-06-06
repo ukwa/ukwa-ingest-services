@@ -95,6 +95,19 @@ a small crawl through the engine and verify things are working as expected.
 
 Data will end up in `/data/dc/`
 
-TODO We need a simple crawl launcher
+You can see the options for the `launch` command, like this:
+
+    docker run ukwa/ukwa-manage launch --help
+
+For example you can run the test crawl by running this command:
+
+    docker run ukwa/ukwa-manage launch -k ${EXTERNAL_HOSTNAME}:9094 dc.discovered http://crawl-test-site.webarchive.org.uk/
+
+Which means enqueue the crawl test site URL on the `dc.discovered` Kafka queue. For the usual frequent crawl we'd have to mark the URL as a seed (using `-S`) so that the scope of the crawl is widened and the page gets rendered, but for the domain crawl the scope is already wide enough and there is no page rendering.
+
+A stream of discovered URLs should show up in Kafka, and the logs and WARCs should start to grow. The page itself should also quickly become visible in the internal Wayback instance.
+
+Launching the full crawl
+------------------------
 
 TODO We also need to revisit the full-domain seeding protocol
