@@ -11,7 +11,7 @@ services:
       - "MAX_TOE_THREADS=100"
       - "CLAMD_HOST=clamd"
       - "CLAMD_ENABLED=true"
-      - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
+      - "KAFKA_BOOTSTRAP_SERVERS=${EXTERNAL_HOSTNAME}:9094"
       - "KAFKA_CRAWLED_TOPIC=uris.crawled.dc"
       - "KAFKA_TOCRAWL_TOPIC=uris.tocrawl.dc"
       - "WRENDER_ENDPOINT=http://wrender:8010/render"
