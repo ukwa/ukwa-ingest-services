@@ -26,6 +26,9 @@ services:
       - "GEOIP_GB_ENABLED=true" # Also allow GeoIP-based inclusion (GB is in scope)
     volumes:
       - /data/dc/heritrix/output:/heritrix/output
+      - /data/dc/heritrix/state:/heritrix/state # Store state outside to avoid overloading the container
+      - type: tmpfs
+          target: /heritrix/scratch # Use RAM disk for scratch space.
     deploy:
       replicas: 4
 
