@@ -9,6 +9,7 @@ Crawl Server Checklist
 
 Before using a service for crawls, we need:
 
+- Docker Swarm installed, using a speedy Docker storage implementation?
 - GlusterFS mounted as `/data/` on all Swarm nodes.
 - An ethernet connection with access to the world wide web.
 - A DNS service that can cope with very heavy usage (we usually use Google DNS servers).
@@ -93,8 +94,6 @@ Run a test crawl
 The `http://data.webarchive.org.uk/crawl-test-site/` can be used to run
 a small crawl through the engine and verify things are working as expected.
 
-Data will end up in `/data/dc/`
-
 You can see the options for the `launch` command, like this:
 
     docker run ukwa/ukwa-manage launch --help
@@ -105,9 +104,15 @@ For example you can run the test crawl by running this command:
 
 Which means enqueue the crawl test site URL on the `dc.discovered` Kafka queue. For the usual frequent crawl we'd have to mark the URL as a seed (using `-S`) so that the scope of the crawl is widened and the page gets rendered, but for the domain crawl the scope is already wide enough and there is no page rendering.
 
-A stream of discovered URLs should show up in Kafka, and the logs and WARCs should start to grow. The page itself should also quickly become visible in the internal Wayback instance.
+A stream of discovered URLs should show up in Kafka, and the logs and WARCs should start to grow. The page itself should also quickly become visible in the internal Wayback instance (unless the WARCs have been moved off).
+
+Data will end up in `/data/dc/`
 
 Launching the full crawl
 ------------------------
 
 TODO We also need to revisit the full-domain seeding protocol
+
+Feed in all known hosts. Pre-filter to avoid lots of empty queues in H3? Run through web render separately?
+
+

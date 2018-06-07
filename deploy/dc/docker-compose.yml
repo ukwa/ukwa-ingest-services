@@ -12,16 +12,16 @@ services:
       - "CLAMD_HOST=clamd"
       - "CLAMD_ENABLED=true"
       - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
-      - "KAFKA_TOCRAWL_TOPIC=dc.discovered"
-      - "KAFKA_CRAWLED_TOPIC=dc.crawled"
+      - "KAFKA_CRAWLED_TOPIC=uris.crawled.dc"
+      - "KAFKA_TOCRAWL_TOPIC=uris.tocrawl.dc"
       - "WRENDER_ENDPOINT=http://wrender:8010/render"
       - "WEBRENDER_ENABLED=false" # Don't render web-pages from within Heritrix for this crawl
       - "CDXSERVER_ENDPOINT=http://cdxserver:8080/dc"
-      - "JOB_NAME=frequent"
+      - "CRAWL_NAME=domain"
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
       - "LAUNCH_AUTOMATICALLY=true"
-      # Scope changes to make this a Domain Crawl
+      # Scope changes to make this a Domain Crawl:
       - "SURTS_SOURCE_FILE=domain-surts.txt" # Use the domain SURT scope
       - "GEOIP_GB_ENABLED=true" # Also allow GeoIP-based inclusion (GB is in scope)
     volumes:
@@ -64,7 +64,7 @@ services:
       LOG_RETENTION_HOURS: -1
       LOG_RETENTION_BYTES: -1
       NUM_PARTITIONS: 128
-      KAFKA_CREATE_TOPICS: "dc.discovered:1024:1,dc.crawled:128:1"
+      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:1024:1,uris.crawled.dc:128:1"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/dc/kafka:/kafka
@@ -136,4 +136,14 @@ services:
       - "CDX_INDEX_SERVER=http://cdxserver:8080/dc"
       - "WAYBACK_URL_PREFIX=http://${EXTERNAL_HOSTNAME}:8080"
       - "WAYBACK_URL_HOST=${EXTERNAL_HOSTNAME}"
+
+
+  # ----------------------------------------------
+  # Test site
+  # Local version of the UKWA test site: http://data.webarchive.org.uk/crawl-test-site/
+  # ----------------------------------------------
+  crawl-test-site.webarchive.org.uk:
+    image: ukwa/crawl-test-site:with-robots-txt
+    ports:
+      - "280:80"
 
