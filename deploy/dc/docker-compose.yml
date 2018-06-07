@@ -67,7 +67,7 @@ services:
       LOG_RETENTION_HOURS: -1
       LOG_RETENTION_BYTES: -1
       NUM_PARTITIONS: 128
-      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:1024:1,uris.crawled.dc:128:1"
+      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:1024:1,uris.crawled.dc:128:1 --config=compression.type=snappy"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/dc/kafka:/kafka
