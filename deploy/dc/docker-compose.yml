@@ -32,6 +32,10 @@ services:
     deploy:
       replicas: 4
     stop_grace_period: 1m # Give the H3 instances some time to shut down neatly following SIGTERM
+    depends_on:
+      - kafka
+      - clamd
+      - cdxserver
 
   # ----------------------------------------------
   # Clamd virus scanning service
@@ -67,14 +71,16 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       LOG_RETENTION_HOURS: -1
       LOG_RETENTION_BYTES: -1
-      NUM_PARTITIONS: 128
-      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:1024:1,uris.crawled.dc:128:1 --config=compression.type=snappy"
+      NUM_PARTITIONS: 256
+      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:256:1,uris.crawled.dc:128:1 --config=compression.type=snappy"
       LOG4J_LOGGER_KAFKA: WARN
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/dc/kafka:/kafka
     deploy:
       mode: global
+    depends_on:
+      - zookeeper
 
   # Kafka UI
   kafka-ui:
@@ -83,6 +89,9 @@ services:
       - "9000:9000"
     environment:
       - "ZK_HOST=zookeeper:2181"
+    depends_on:
+      - zookeeper
+      - kafka
 
   # ----------------------------------------------
   # OutbackCDX use to record crawl state
