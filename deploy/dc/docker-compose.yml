@@ -31,6 +31,7 @@ services:
         target: /heritrix/scratch # Use RAM disk for scratch space.
     deploy:
       replicas: 4
+    stop_grace_period: 1m # Give the H3 instances some time to shut down neatly following SIGTERM
 
   # ----------------------------------------------
   # Clamd virus scanning service
@@ -68,6 +69,7 @@ services:
       LOG_RETENTION_BYTES: -1
       NUM_PARTITIONS: 128
       KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:1024:1 --config=compression.type=snappy,uris.crawled.dc:128:1 --config=compression.type=snappy"
+      LOG4J_LOGGER_KAFKA: WARN
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/dc/kafka:/kafka
