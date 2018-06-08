@@ -30,7 +30,7 @@ services:
       - type: tmpfs
         target: /heritrix/scratch # Use RAM disk for scratch space.
     deploy:
-      replicas: 4
+      replicas: 6
     stop_grace_period: 1m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - kafka
@@ -43,7 +43,7 @@ services:
   clamd:
     image: ukwa/clamd
     deploy:
-      replicas: 4
+      replicas: 6
 
   # ----------------------------------------------
   # Kafka: used for URI routing and logging
