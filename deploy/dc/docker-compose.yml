@@ -145,7 +145,8 @@ services:
   # Test site
   # Local version of the UKWA test site: http://data.webarchive.org.uk/crawl-test-site/
   # ----------------------------------------------
-  crawl-test-site.webarchive.org.uk:
+  crawl-test-site:
+    hostname: crawl-test-site.webarchive.org.uk
     image: ukwa/crawl-test-site:with-robots-txt
     ports:
       - "280:80"
