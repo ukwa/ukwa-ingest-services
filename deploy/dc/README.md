@@ -80,7 +80,7 @@ e.g.
 
 Now you can run:
 
-    sh prometheus-reload.sh
+    sh prometheus-reload-cfg.sh
 
 to update the configuration and should see a `HTTP 200` response if the configuration is valid.
 
