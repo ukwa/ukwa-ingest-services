@@ -6,7 +6,7 @@ services:
   # ----------------------------------------------
   heritrix-worker:
     image: ukwa/heritrix-worker
-    hostname: "{{.Task.Name}}.{{.Task.Slot}}" # Set the hostname so the persistent files are in consistent locations
+    hostname: "heritrix-worker-{{.Task.Slot}}" # Set the hostname so the persistent files are in consistent locations
     environment:
       - "JAVA_OPTS=-Xmx8g"
       - "MAX_TOE_THREADS=100"
@@ -58,7 +58,7 @@ services:
 
   kafka:
     image: wurstmeister/kafka:1.1.0
-    hostname: "{{.Service.Name}}.{{.Task.Slot}}" # Set the hostname so the persistent files are in consistent locations
+    hostname: "{{.Task.Slot}}" # Set the hostname so the persistent files are in consistent locations n.b. Task.Slot == Node.ID when global
     ports:
       - target: 9094
         published: 9094
