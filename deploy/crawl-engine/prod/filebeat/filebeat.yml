@@ -9,8 +9,8 @@ filebeat:
       ignore_older: 24h
       close_inactive: 1h
       fields:
+        log_type: heritrix
         crawl_id: crawler-production
-        document_type: heritrix
 
 output:
   # Route logs to logstash:
