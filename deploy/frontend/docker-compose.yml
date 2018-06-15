@@ -25,7 +25,7 @@ services:
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.7
+    image: ukwa/w3act:2.0.8
     environment:
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
@@ -50,7 +50,7 @@ services:
       - "v8b-dlsebk01.ad.bl.uk:192.168.242.115"
       - "v8b-dlseco01.ad.bl.uk:192.168.242.107"
       - "piiirc.ad.bl.uk:192.168.225.236"
-      - "crawler01.bl.uk:127.0.0.1"
+      - "crawler03.bl.uk:127.0.0.1"
 
   # PostgreSQL
   postgres:
