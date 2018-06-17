@@ -6,7 +6,6 @@ services:
   # ----------------------------------------------
   heritrix-worker:
     image: ukwa/heritrix-worker
-    hostname: "heritrix-worker-{{.Task.Slot}}" # Set the hostname so the persistent files are in consistent locations
     environment:
       - "JAVA_OPTS=-Xmx8g"
       - "MAX_TOE_THREADS=100"
@@ -21,13 +20,13 @@ services:
       - "CRAWL_NAME=domain"
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
-      - "LAUNCH_AUTOMATICALLY=true"
+      - "LAUNCH_AUTOMATICALLY=false"
       # Scope changes to make this a Domain Crawl:
       - "SURTS_SOURCE_FILE=domain-surts.txt" # Use the domain SURT scope
       - "GEOIP_GB_ENABLED=true" # Also allow GeoIP-based inclusion (GB is in scope)
     volumes:
       - /data/dc/heritrix/output:/heritrix/output
-      - /data/dc/heritrix/state:/heritrix/state # Store state outside to avoid overloading the container
+      - /data/dc/heritrix/state:/heritrix/state # Store state outside to avoid overloading the container - random hostname is used to keep different runs separate.
       - type: tmpfs
         target: /heritrix/scratch # Use RAM disk for scratch space.
     deploy:
@@ -55,10 +54,11 @@ services:
     image: wurstmeister/zookeeper
     ports:
       - 2181:2181
+    volumes:
+      - /data/dc/kafka/zookeeper-data:/opt/zookeeper-3.4.9/data
 
   kafka:
     image: wurstmeister/kafka:1.1.0
-    hostname: "{{.Task.Slot}}" # Set the hostname so the persistent files are in consistent locations n.b. Task.Slot == Node.ID when global
     ports:
       - target: 9094
         published: 9094
@@ -73,12 +73,14 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
       LOG_RETENTION_HOURS: -1
       LOG_RETENTION_BYTES: -1
-      NUM_PARTITIONS: 256
+      NUM_PARTITIONS: 128
       KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:512:1 --config=compression.type=snappy,uris.crawled.dc:128:1 --config=compression.type=snappy"
       LOG4J_LOGGER_KAFKA: WARN
+      # persistent files are in consistent locations, each server supplies a /kafka folder.
+      KAFKA_LOG_DIRS: /kafka/kafka-logs
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /data/dc/kafka:/kafka
+      - /data-kafka-logs:/kafka/kafka-logs
     deploy:
       mode: global
     depends_on:
