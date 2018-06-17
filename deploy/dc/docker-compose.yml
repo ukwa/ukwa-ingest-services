@@ -75,6 +75,7 @@ services:
       LOG_RETENTION_BYTES: -1
       NUM_PARTITIONS: 256
       KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:512:1 --config=compression.type=snappy,uris.crawled.dc:128:1 --config=compression.type=snappy"
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
       LOG4J_LOGGER_KAFKA: WARN
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
