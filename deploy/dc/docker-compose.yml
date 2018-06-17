@@ -66,6 +66,7 @@ services:
         mode: host
     environment:
       HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      # BROKER_ID_COMMAND to associated BROKER ID with hostname?
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
       KAFKA_ADVERTISED_LISTENERS: INSIDE://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
@@ -88,15 +89,28 @@ services:
       - zookeeper
 
   # Kafka UI
-  kafka-ui:
-    image: janschultecom/docker-trifecta
+  kafka-rest:
+    image: confluentinc/cp-kafka-rest:4.1.0
     ports:
-      - "9000:9000"
+      - 8082:8082
     environment:
-      - "ZK_HOST=zookeeper:2181"
+      KAFKA_REST_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_REST_LISTENERS: http://0.0.0.0:8082
+      #KAFKA_REST_SCHEMA_REGISTRY_URL=http://schema-registry:8081
+      KAFKA_REST_HOST_NAME: kafka-rest
     depends_on:
       - zookeeper
       - kafka
+
+  kafka-ui:
+    image: landoop/kafka-topics-ui
+    ports:
+     - 9000:8000
+    environment:
+      KAFKA_REST_PROXY_URL: http://kafka-rest:8082
+      PROXY: 'true'
+    depends_on:
+      - kafka-rest
 
   # ----------------------------------------------
   # OutbackCDX use to record crawl state
