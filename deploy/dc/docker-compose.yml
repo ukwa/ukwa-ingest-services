@@ -24,6 +24,7 @@ services:
       # Scope changes to make this a Domain Crawl:
       - "SURTS_SOURCE_FILE=domain-surts.txt" # Use the domain SURT scope
       - "GEOIP_GB_ENABLED=true" # Also allow GeoIP-based inclusion (GB is in scope)
+      - "USER_AGENT_PREFIX=bl.uk_lddc_bot" # Also declare a different User Agent for this crawl.
     volumes:
       - /data/dc/heritrix/output:/heritrix/output
       - /data/dc/heritrix/state:/heritrix/state # Store state outside to avoid overloading the container - random hostname is used to keep different runs separate.
@@ -31,7 +32,7 @@ services:
         target: /heritrix/scratch # Use RAM disk for scratch space.
     deploy:
       replicas: 6
-    stop_grace_period: 1m # Give the H3 instances some time to shut down neatly following SIGTERM
+    stop_grace_period: 5m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - kafka
       - clamd
