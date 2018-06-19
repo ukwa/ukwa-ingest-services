@@ -25,6 +25,7 @@ services:
       - "SURTS_SOURCE_FILE=domain-surts.txt" # Use the domain SURT scope
       - "GEOIP_GB_ENABLED=true" # Also allow GeoIP-based inclusion (GB is in scope)
       - "USER_AGENT_PREFIX=bl.uk_lddc_bot" # Also declare a different User Agent for this crawl.
+      - "KAFKA_TOCRAWL_IN_SCOPE_ONLY=true"
       # Use hop depth to control the domain crawl:
       - "MAX_HOPS_DEFAULT=8"
     volumes:
