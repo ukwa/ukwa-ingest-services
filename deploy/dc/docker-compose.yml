@@ -70,9 +70,6 @@ services:
         published: 9094
         protocol: tcp
         mode: host
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /data/dc/kafka:/kafka/kafka-logs
     depends_on:
       - zookeeper
     environment:
@@ -93,6 +90,9 @@ services:
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-1
       # CREATE this topic on this node
       KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:256:1 --config=compression.type=snappy"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/dc/kafka/kafka-logs-broker-1:/kafka/kafka-logs/kafka-logs-broker-1
     deploy:
       replicas: 1
       placement:
@@ -106,9 +106,6 @@ services:
         published: 9094
         protocol: tcp
         mode: host
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /data/dc/kafka:/kafka/kafka-logs
     depends_on:
       - zookeeper
     environment:
@@ -129,6 +126,9 @@ services:
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-2
       # CREATE this topic on this node
       KAFKA_CREATE_TOPICS: "uris.crawled.dc:64:1 --config=compression.type=snappy"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/dc/kafka/kafka-logs-broker-2:/kafka/kafka-logs/kafka-logs-broker-2
     deploy:
       replicas: 1
       placement:
