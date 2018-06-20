@@ -5,7 +5,7 @@ services:
   # UKWA Heritrix
   # ----------------------------------------------
   heritrix-worker:
-    image: ukwa/heritrix-worker
+    image: ukwa/heritrix-worker:2.0.1
     environment:
       - "JAVA_OPTS=-Xmx8g"
       - "MAX_TOE_THREADS=100"
