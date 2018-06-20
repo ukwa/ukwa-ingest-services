@@ -64,40 +64,75 @@ services:
   # Kafka Broker Setup:
   #
   kafka-1:
-    extends:
-      file: common.yml
-      service: kafka-common
+    image: wurstmeister/kafka:1.1.0
     ports:
       - target: 9094
         published: 9094
         protocol: tcp
         mode: host
     environment:
-      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:512:1 --config=compression.type=snappy,uris.crawled.dc:128:1 --config=compression.type=snappy"
+      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
+      KAFKA_LISTENERS: PLAINTEXT://:9092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_NUM_RECOVERY_THREADS_PER_DATA_DIR: 10
+      KAFKA_LOG_RETENTION_HOURS: -1
+      KAFKA_LOG_RETENTION_BYTES: -1
+      KAFKA_NUM_PARTITIONS: 128
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      LOG4J_LOGGER_KAFKA: WARN
       # persistent files are in consistent locations, each server supplies a /kafka folder.
       KAFKA_BROKER_ID: 1
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-1
+      # Only run CREATE on this node:
+      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:512:1 --config=compression.type=snappy,uris.crawled.dc:128:1 --config=compression.type=snappy"
     deploy:
       placement:
         constraints: [node.hostname == crawler04]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/dc/kafka:/kafka/kafka-logs
+    deploy:
+      replicas: 1
+    depends_on:
+      - zookeeper
 
   # Second Kafka instance
   kafka-2:
-    extends:
-      file: common.yml
-      service: kafka-common
+    image: wurstmeister/kafka:1.1.0
     ports:
       - target: 9094
         published: 9094
         protocol: tcp
         mode: host
     environment:
+      HOSTNAME_COMMAND: "docker info | grep ^Name: | cut -d' ' -f 2"
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,OUTSIDE:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://:9092,OUTSIDE://_{HOSTNAME_COMMAND}:9094
+      KAFKA_LISTENERS: PLAINTEXT://:9092,OUTSIDE://:9094
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_NUM_RECOVERY_THREADS_PER_DATA_DIR: 10
+      KAFKA_LOG_RETENTION_HOURS: -1
+      KAFKA_LOG_RETENTION_BYTES: -1
+      KAFKA_NUM_PARTITIONS: 128
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      LOG4J_LOGGER_KAFKA: WARN
       # persistent files are in consistent locations, each server supplies a /kafka folder.
       KAFKA_BROKER_ID: 2
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-2
     deploy:
       placement:
         constraints: [node.hostname == crawler01]
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/dc/kafka:/kafka/kafka-logs
+    deploy:
+      replicas: 1
+    depends_on:
+      - zookeeper
 
   # Kafka UI
   kafka-ui:
