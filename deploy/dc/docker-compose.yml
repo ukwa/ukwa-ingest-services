@@ -73,8 +73,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/dc/kafka:/kafka/kafka-logs
-    deploy:
-      replicas: 1
     depends_on:
       - zookeeper
     environment:
@@ -96,6 +94,7 @@ services:
       # Only run CREATE on this node:
       KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:512:1 --config=compression.type=snappy,uris.crawled.dc:128:1 --config=compression.type=snappy"
     deploy:
+      replicas: 1
       placement:
         constraints: [node.hostname == crawler04]
 
@@ -110,8 +109,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/dc/kafka:/kafka/kafka-logs
-    deploy:
-      replicas: 1
     depends_on:
       - zookeeper
     environment:
@@ -131,6 +128,7 @@ services:
       KAFKA_BROKER_ID: 2
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-2
     deploy:
+      replicas: 1
       placement:
         constraints: [node.hostname == crawler01]
 
