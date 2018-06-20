@@ -16,7 +16,7 @@ services:
       - "KAFKA_TOCRAWL_TOPIC=uris.tocrawl.dc"
       - "WRENDER_ENDPOINT=http://wrender:8010/render"
       - "WEBRENDER_ENABLED=false" # Don't render web-pages from within Heritrix for this crawl
-      - "CDXSERVER_ENDPOINT=http://192.168.45.21:9090/dc"
+      - "CDXSERVER_ENDPOINT=http://192.168.45.21:9090/dc-2018-1
       - "CRAWL_NAME=domain"
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
@@ -151,6 +151,6 @@ services:
       - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
       - "WAYBACK_EMBARGO=0"
       - "WAYBACK_HTTPFS_PREFIX=http://warc-server:8000/by-filename/"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:9090/dc"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:9090/dc-2018-1"
       - "WAYBACK_URL_PREFIX=http://${EXTERNAL_HOSTNAME}:8080"
       - "WAYBACK_URL_HOST=${EXTERNAL_HOSTNAME}"
