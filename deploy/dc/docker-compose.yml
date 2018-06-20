@@ -96,7 +96,7 @@ services:
     deploy:
       replicas: 1
       placement:
-        constraints: [node.hostname == crawler04]
+        constraints: [node.hostname == crawler04.bl.uk]
 
   # Second Kafka instance
   kafka-2:
@@ -130,7 +130,7 @@ services:
     deploy:
       replicas: 1
       placement:
-        constraints: [node.hostname == crawler01]
+        constraints: [node.hostname == crawler01.bl.uk]
 
   # Kafka UI
   kafka-ui:
