@@ -7,16 +7,19 @@ services:
   heritrix-worker:
     image: ukwa/heritrix-worker:2.1.4
     environment:
-      - "JAVA_OPTS=-Xmx8g"
-      - "MAX_TOE_THREADS=200"
+      - "JAVA_OPTS=-Xmx4g"
+      - "MAX_TOE_THREADS=100"
       - "CLAMD_HOST=clamd"
       - "CLAMD_ENABLED=true"
       - "KAFKA_BOOTSTRAP_SERVERS=${EXTERNAL_HOSTNAME}:9094"
       - "KAFKA_CRAWLED_TOPIC=uris.crawled.dc"
       - "KAFKA_TOCRAWL_TOPIC=uris.tocrawl.dc"
+      - "KAFKA_DISCARDED_FEED_ENABLED=false"
+      - "KAFKA_DISCARDED_TOPIC=uris.discarded.dc"
+      - "RECORD_DECIDING_RULE=true"
       - "WRENDER_ENDPOINT=http://wrender:8010/render"
       - "WEBRENDER_ENABLED=false" # Don't render web-pages from within Heritrix for this crawl
-      - "CDXSERVER_ENDPOINT=http://192.168.45.21:9090/dc-2018-2"
+      - "CDXSERVER_ENDPOINT=http://192.168.45.21:9090/dc-2018-1"
       - "CRAWL_NAME=domain"
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
@@ -33,7 +36,7 @@ services:
       - type: tmpfs
         target: /heritrix/scratch # Use RAM disk for scratch space.
     deploy:
-      replicas: 8
+      replicas: 16
     stop_grace_period: 2m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - kafka-1
@@ -46,7 +49,7 @@ services:
   clamd:
     image: ukwa/clamd
     deploy:
-      replicas: 8
+      replicas: 16
 
   # ----------------------------------------------
   # Kafka: used for URI routing and logging
@@ -125,7 +128,7 @@ services:
       KAFKA_BROKER_ID: 2
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-2
       # CREATE this topic on this node
-      KAFKA_CREATE_TOPICS: "uris.crawled.dc:64:1 --config=compression.type=snappy"
+      KAFKA_CREATE_TOPICS: "uris.crawled.dc:64:1 --config=compression.type=snappy,uris.discarded.dc:256:1 --config=compression.type=snappy"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/dc/kafka/kafka-logs-broker-2:/kafka/kafka-logs/kafka-logs-broker-2
@@ -186,7 +189,7 @@ services:
       - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
       - "WAYBACK_EMBARGO=0"
       - "WAYBACK_HTTPFS_PREFIX=http://warc-server:8000/by-filename/"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:9090/dc-2018-2"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:9090/dc-2018-1"
       - "WAYBACK_URL_PREFIX=http://${EXTERNAL_HOSTNAME}:8080"
       - "WAYBACK_URL_HOST=${EXTERNAL_HOSTNAME}"
 
@@ -197,6 +200,6 @@ services:
       - "8081:8080"
     environment:
       - "WEBHDFS_USER=access"
-      - "UKWA_INDEX=xmlquery+http://192.168.45.21:9090/dc-2018-2"
+      - "UKWA_INDEX=xmlquery+http://192.168.45.21:9090/dc-2018-1"
       - "UKWA_ARCHIVE=webhdfs://warc-server:8000/by-filename/"
 
