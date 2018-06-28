@@ -5,10 +5,10 @@ services:
   # UKWA Heritrix
   # ----------------------------------------------
   heritrix-worker:
-    image: ukwa/heritrix-worker:2.0.2
+    image: ukwa/heritrix-worker:2.1.4
     environment:
       - "JAVA_OPTS=-Xmx8g"
-      - "MAX_TOE_THREADS=100"
+      - "MAX_TOE_THREADS=200"
       - "CLAMD_HOST=clamd"
       - "CLAMD_ENABLED=true"
       - "KAFKA_BOOTSTRAP_SERVERS=${EXTERNAL_HOSTNAME}:9094"
@@ -20,20 +20,20 @@ services:
       - "CRAWL_NAME=domain"
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
-      - "LAUNCH_AUTOMATICALLY=true"
+      - "LAUNCH_AUTOMATICALLY=false"
       # Scope changes to make this a Domain Crawl:
       - "SURTS_SOURCE_FILE=domain-surts.txt" # Use the domain SURT scope
       - "GEOIP_GB_ENABLED=true" # Also allow GeoIP-based inclusion (GB is in scope)
       - "USER_AGENT_PREFIX=bl.uk_lddc_bot" # Also declare a different User Agent for this crawl.
       # Use hop depth to control the domain crawl:
-      - "MAX_HOPS_DEFAULT=4"
+      - "MAX_HOPS_DEFAULT=8"
     volumes:
       - /data/dc/heritrix/output:/heritrix/output
       - /data/dc/heritrix/state:/heritrix/state # Store state outside to avoid overloading the container - random hostname is used to keep different runs separate.
       - type: tmpfs
         target: /heritrix/scratch # Use RAM disk for scratch space.
     deploy:
-      replicas: 6
+      replicas: 8
     stop_grace_period: 2m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - kafka-1
@@ -46,7 +46,7 @@ services:
   clamd:
     image: ukwa/clamd
     deploy:
-      replicas: 6
+      replicas: 8
 
   # ----------------------------------------------
   # Kafka: used for URI routing and logging
@@ -147,15 +147,15 @@ services:
   # ----------------------------------------------
   # Monitoring: Expose crawl metrics to Prometheus
   # ----------------------------------------------
-  heritrix3-exporter:
-    image: ukwa/heritrix3-exporter
+  hapy-dash:
+    image: ukwa/hapy
     ports:
-      - 9118:9118
+      - 9118:8000
     environment:
-      - "HERITRIX_USER=admin"
+      - "HERITRIX_USERNAME=admin"
       - "HERITRIX_PASSWORD=bl_uk"
     volumes:
-      - ./crawl-jobs.json:/monitor/crawl-jobs.json
+      - /root/github/ukwa-ingest-services/deploy/dc/crawl-jobs.json:/monitor/crawl-jobs.json
 
   # ----------------------------------------------
   # QA and mid-crawl playback
@@ -189,3 +189,14 @@ services:
       - "CDX_INDEX_SERVER=http://192.168.45.21:9090/dc-2018-2"
       - "WAYBACK_URL_PREFIX=http://${EXTERNAL_HOSTNAME}:8080"
       - "WAYBACK_URL_HOST=${EXTERNAL_HOSTNAME}"
+
+  # Python Wayback
+  pywb:
+    image: ukwa/ukwa-pywb
+    ports:
+      - "8081:8080"
+    environment:
+      - "WEBHDFS_USER=access"
+      - "UKWA_INDEX=xmlquery+http://192.168.45.21:9090/dc-2018-2"
+      - "UKWA_ARCHIVE=webhdfs://warc-server:8000/by-filename/"
+
