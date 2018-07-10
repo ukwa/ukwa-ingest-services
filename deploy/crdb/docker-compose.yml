@@ -7,8 +7,9 @@ services:
   crdb:
     image: cockroachdb/cockroach:v2.0.3
     command: start --join=crdb-1:26257,crdb-2:26257 --cache=.25 --max-sql-memory=.25 --logtostderr --insecure
-    expose:
+    ports:
       - "18080:8080"
+      - "26257:26257"
     environment:
       - "EXCLUDE_PORTS=8888"
     volumes:
