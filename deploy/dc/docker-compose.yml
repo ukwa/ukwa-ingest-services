@@ -5,7 +5,7 @@ services:
   # UKWA Heritrix
   # ----------------------------------------------
   heritrix-worker:
-    image: ukwa/heritrix-worker:2.1.14
+    image: ukwa/heritrix-worker:2.2.0
     hostname: "h3-{{.Task.Slot}}"
     environment:
       - "JAVA_OPTS=-Xmx4g"
