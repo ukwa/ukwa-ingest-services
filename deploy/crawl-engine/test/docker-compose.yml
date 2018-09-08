@@ -124,17 +124,43 @@ services:
     deploy:
       replicas: 2
 
+  # ----------------------------------------------
+  # Monitoring & Control
+  # ----------------------------------------------
+
   # Monitoring 
   heritrix3-exporter:
     image: ukwa/heritrix3-exporter
     ports:
-      - 9118:9118
+      - 9119:9118
     environment:
       - "HERITRIX_USER=admin"
       - "HERITRIX_PASSWORD=bl_uk"
     extra_hosts:
       - "crawler01.bl.uk:192.168.45.16"
       - "crawler04.bl.uk:192.168.45.12"
+
+  # Crawl control console
+  control:
+    image: ukwa/ukwa-manage
+    ports:
+      - 9118:8000
+    environment:
+      - "HERITRIX_USER=admin"
+      - "HERITRIX_PASSWORD=bl_uk"
+      - "CRAWL_JOBS_FILE=/crawl-jobs.json"
+      - "WEBHDFS_PREFIX=http://warc-server:8000/by-filename/"
+      - "CDX_SERVER=http://cdxserver:8080/fc"
+      - "KAFKA_BOOTSTRAP_SERVERS=crawler02.bl.uk:9094"
+      - "KAFKA_CRAWLED_TOPIC=fc.crawled"
+      - "KAFKA_SEEK_TO_BEGINNING=false"
+    volumes:
+      - "./crawl-jobs.json:/crawl-jobs.json"
+    depends_on:
+      - heritrix-worker
+      - kafka
+      - cdxserver
+      - warc-server
 
   # ----------------------------------------------
   # QA Access
