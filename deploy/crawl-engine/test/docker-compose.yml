@@ -3,16 +3,21 @@ version: "3.2"
 services:
   # UKWA Heritrix
   heritrix-worker:
-    image: ukwa/heritrix-worker
+    image: ukwa/heritrix-worker:2.2.6
     environment:
       - "JAVA_OPTS=-Xmx2g"
       - "MAX_TOE_THREADS=100"
       - "CLAMD_HOST=clamd"
       - "CLAMD_ENABLED=true"
       - "KAFKA_BOOTSTRAP_SERVERS=kafka:9092"
-      - "KAFKA_TOCRAWL_TOPIC=fc.to-crawl"
+      - "KAFKA_TOCRAWL_TOPIC=fc.candidates"
+      - "KAFKA_CANDIDATES_TOPIC=fc.candidates"
       - "KAFKA_CRAWLED_TOPIC=fc.crawled"
-      - "WRENDER_ENDPOINT=http://wrender:8010/render"
+      - "KAFKA_SEEK_TO_BEGINNING=false" # To set to false if we try to re-use the state folders, to cope with the size of the tocrawl feed.
+      - "KAFKA_MAX_POLL_RECORDS=1000"
+      - "KAFKA_NUM_MESSAGE_THREADS=16"
+      - "RECORD_DECIDING_RULE=true"
+      - "WEBRENDER_ENDPOINT=http://wrender:8010/render"
       - "WEBRENDER_ENABLED=true"
       - "CDXSERVER_ENDPOINT=http://cdxserver:8080/fc"
       - "JOB_NAME=frequent"
@@ -22,10 +27,7 @@ services:
     volumes:
       - /data/test/heritrix/output:/heritrix/output
     deploy:
-      replicas: 4
-      placement:
-        constraints:
-          - node.hostname == crawler02
+      replicas: 1
 
   # Clamd virus scanning Service
   clamd:
@@ -59,7 +61,10 @@ services:
       LOG_RETENTION_HOURS: -1
       LOG_RETENTION_BYTES: -1
       NUM_PARTITIONS: 128
-      KAFKA_CREATE_TOPICS: "fc.to-crawl:1024:1,fc.crawled:128:1"
+      KAFKA_CREATE_TOPICS: "fc.to-crawl:128:1,fc.crawled:128:1,fc.candidates:128:1"
+      # persistent files are in consistent locations, each server supplies a /kafka folder.
+      KAFKA_BROKER_ID: 1
+      KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-1
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - /data/test/kafka:/kafka
@@ -75,14 +80,13 @@ services:
       - "ZK_HOST=zookeeper:2181"
 
   # tinycdxserver
-  # TODO Fix up state management:
   cdxserver:
     image: ukwa/tinycdxserver
     command: "java -jar outbackcdx.jar -v -d /cdx-data -p 8080 -b 0.0.0.0"
     ports:
       - "9090:8080"
-#    volumes:
-#      - /data/test/cdxserver:/cdx-data
+    volumes:
+      - /data/test/cdxserver:/cdx-data
 
 
   # ----------------------------------------------
@@ -94,17 +98,14 @@ services:
     image: ukwa/warcprox
     command: "warcprox -b 0.0.0.0 -d /output/warcs --base32 --gzip --rollover-idle-time 600 --dedup-db-file /dev/null --stats-db-file /dev/null --quiet --plugin warcprox-plugins.listeners.KafkaCaptureFeed --plugin warcprox-plugins.listeners.UpdateOutbackCDX"
     environment:
-      - "KAFKA_BOOTSTRAP_SERVERS=crawler02.bl.uk:9094"
+      - "KAFKA_BOOTSTRAP_SERVERS=192.168.45.19:9094"
       - "KAFKA_CRAWLED_TOPIC=fc.crawled"
       - "KAFKA_ACKS=1"
       - "CDXSERVER_ENDPOINT=http://cdxserver:8080/fc"
     volumes:
       - /data/test/heritrix/wren:/output/warcs
     deploy:
-      replicas: 2
-      placement:
-        constraints:
-          - node.hostname == crawler02
+      replicas: 1
 
 
   # ----------------------------------------------
@@ -113,7 +114,7 @@ services:
 
   # PhantomJS web page rendering service
   wrender:
-    image: ukwa/webrender-phantomjs:2.0.8
+    image: ukwa/webrender-phantomjs:2.0.10
     environment:
       - "WARCPROX=warcprox:8000"
       - "LC_ALL=en_US.utf8"
@@ -122,45 +123,51 @@ services:
       - type: tmpfs
         target: /tmp/webrender
     deploy:
-      replicas: 2
+      replicas: 1
+
 
   # ----------------------------------------------
   # Monitoring & Control
   # ----------------------------------------------
 
-  # Monitoring 
-  heritrix3-exporter:
-    image: ukwa/heritrix3-exporter
-    ports:
-      - 9119:9118
-    environment:
-      - "HERITRIX_USER=admin"
-      - "HERITRIX_PASSWORD=bl_uk"
-    extra_hosts:
-      - "crawler01.bl.uk:192.168.45.16"
-      - "crawler04.bl.uk:192.168.45.12"
-
-  # Crawl control console
-  control:
+  hapy-dash:
     image: ukwa/ukwa-manage
     ports:
       - 9118:8000
     environment:
-      - "HERITRIX_USER=admin"
+      - "HERITRIX_USERNAME=admin"
       - "HERITRIX_PASSWORD=bl_uk"
       - "CRAWL_JOBS_FILE=/crawl-jobs.json"
       - "WEBHDFS_PREFIX=http://warc-server:8000/by-filename/"
       - "CDX_SERVER=http://cdxserver:8080/fc"
-      - "KAFKA_BOOTSTRAP_SERVERS=crawler02.bl.uk:9094"
+      - "KAFKA_BOOTSTRAP_SERVERS=192.168.45.19:9094"
       - "KAFKA_CRAWLED_TOPIC=fc.crawled"
-      - "KAFKA_SEEK_TO_BEGINNING=false"
+      - "KAFKA_SEEK_TO_BEGINNING=False"
     volumes:
-      - "./crawl-jobs.json:/crawl-jobs.json"
+      - /root/github/ukwa-ingest-services/deploy/crawl-engine/test/crawl-jobs.json:/crawl-jobs.json
     depends_on:
       - heritrix-worker
       - kafka
       - cdxserver
       - warc-server
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9191:9090
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - ./prometheus-data:/prometheus
+    user: root
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.external-url=http://crawler02.bl.uk:9191/'
+      - '--web.enable-admin-api'
+      - '--web.enable-lifecycle'
+
 
   # ----------------------------------------------
   # QA Access
@@ -174,10 +181,6 @@ services:
     volumes:
       - /data/test/heritrix/output:/heritrix/output
       - /data/test/heritrix/wren:/heritrix/wren
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == crawler02
 
   # OpenWayback for QA
   openwayback:
@@ -234,10 +237,6 @@ services:
       - /data/docker/:/var/lib/docker:ro
     ports:
       - 9393:8080
-    deploy:
-      placement:
-        constraints:
-          - node.hostname == crawler02
 
 
 
