@@ -29,7 +29,7 @@ services:
       - "1937:1936" # For monitoring/stats
     environment:
       - "BALANCE=roundrobin"
-      - "TIMEOUT=connect 10s, client 1m, server 1m"
+      - "TIMEOUT=connect 30s, client 10m, server 10m"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
