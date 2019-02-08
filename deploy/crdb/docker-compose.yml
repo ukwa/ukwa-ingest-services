@@ -6,18 +6,15 @@ services:
   # CockroachDB
   crdb:
     image: cockroachdb/cockroach:v2.0.3
-    command: start --join=crdb-1:26257,crdb-2:26257 --cache=.25 --max-sql-memory=.25 --logtostderr --insecure
+    command: start --join=192.168.45.60:26257 --cache=.25 --max-sql-memory=.25 --logtostderr --insecure --advertise-host=${ADVERTISE_HOST} --http-host=0.0.0.0
     ports:
       - "18080:8080"
       - "26257:26257"
     environment:
-      - "EXCLUDE_PORTS=8888"
+      - ADVERTISE_HOST
     volumes:
       - ./cockroachdb-data:/cockroach/cockroach-data
     deploy:
       replicas: 1
     stop_grace_period: 60s
-    extra_hosts:
-      - "crdb-1:192.168.45.60"
-      - "crdb-2:192.168.45.25"
 

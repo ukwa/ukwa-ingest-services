@@ -1,5 +1,5 @@
 
-version: '2'
+version: '3.2'
 
 services:
 
@@ -13,7 +13,8 @@ services:
     environment:
       - "EXCLUDE_PORTS=8888"
     volumes:
-      - ./output/warcs:/output/warcs
+      - /data/test/warcproxen:/output/warcs
+    hostname: "{{.Service.Name}}.{{.Task.Slot}}"
 
   # HAProxy load balancer
   # https://github.com/docker/dockercloud-haproxy
