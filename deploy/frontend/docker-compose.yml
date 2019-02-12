@@ -1,12 +1,12 @@
-version: '2'
+version: '3.2'
 
 services:
   # OpenWayback for QA
   openwayback:
     image: ukwa/waybacks
     ports:
-      - "${INTERNAL_IP}:9080:8080"
-      - "${INTERNAL_IP}:8090:8090"
+      - "9080:8080"
+      - "8090:8090"
     environment:
       - "UKWA_OWB_VERSION=qa"
       - "WAYBACK_URL_PORT=8080"
@@ -14,18 +14,48 @@ services:
       - "CDX_WHITELIST="
       - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
       - "WAYBACK_EMBARGO=0"
+      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
+      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
+      - "WAYBACK_URL_PREFIX=${W3ACT_SERVER_NAME}/act"
+      - "WAYBACK_URL_HOST=${INTERNAL_IP}"
+
+  # PyWB for QA
+  pywb:
+    image: ukwa/ukwa-pywb
+    ports:
+      - "7080:8080"
+    environment:
+      WEBHDFS_USER: "access"
+      UKWA_INDEX: "xmlquery+http://192.168.45.21:8080/data-heritrix"
+      UKWA_ARCHIVE: "webhdfs://192.168.45.13:14000"
+      SCRIPT_NAME: "/act/wayback"
+    volumes:
+      - ./pywb-config.yaml:/webarchive/config.yaml
+
+  # NGINX for PYWB
+  # To ensure pywb gets proxied behind the right location, we use
+  # this NGINX instance to set the deployment scheme, hostname and path
+  nginx:
+    image: nginx:1.13-alpine
+    volumes:
+      - ${PYWB_NGINX_CONF}:/etc/nginx/conf.d/pywb.conf:ro
+    ports:
+      - "8100:8100"
+    depends_on:
+      - pywb
+
 
   # PDF to HTML service
   pdf2htmlex:
     image: ukwa/pdf2htmlex:1.0.1
     ports:
-      - "${INTERNAL_IP}:5005:5000"
-    links:
+      - "5005:5000"
+    depends_on:
       - openwayback
 
   # W3ACT
   w3act:
-    image: ukwa/w3act:2.0.8
+    image: ukwa/w3act:${W3ACT_VERSION}
     environment:
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
@@ -35,13 +65,23 @@ services:
       - "USE_TEST_DATA=false"
       - "ENABLE_DDHAPT=true"
       - "SMTP_SERVER=juno.bl.uk"
-      - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "WAYBACK_URL=http://nginx:8100/"
       - "MONITRIX_URI=http://monitrix:5601/app/kibana"
       - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
       - "AMQP_HOST=amqp"
+      - "SERVER_NAME=${W3ACT_SERVER_NAME}"
+      - "PII_URI=${PII_URL}"
+      - "ACCESS_RESOLVER_URI=https://www.webarchive.org.uk/access/resolve/"
+      - "ENABLE_EVOLUTIONS=false"
+      - "APPLY_EVOLUTIONS=false"
+      - "APPLY_DOWN_EVOLUTIONS=false" # WARNING DOWNS ARE POTENTIALLY DESTRUCTIVE
+    volumes:
+      - "${DDHAPT_SIPS_SUBMITTED_DIR}:/opt/data/dls_sips_copy"
+      - "${DDHAPT_EBOOKS_SUBMISSION_DIR}:/opt/data/w3act/ebooks:shared"
+      - "${DDHAPT_EJOURNALS_SUBMISSION_DIR}:/opt/data/w3act/ejournals:shared"
     ports:
-      - "${INTERNAL_IP}:9000:9000"
-    links:
+      - "9000:9000"
+    depends_on:
       - openwayback
       - pdf2htmlex
     extra_hosts:
@@ -59,4 +99,9 @@ services:
       - "POSTGRES_USER=w3act"
       - "POSTGRES_PASSWORD=${W3ACT_PSQL_PASSWORD}"
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    volumes:
+      - "${W3ACT_PSQL_DIR}:/var/lib/postgresql/data"
+
+
+
