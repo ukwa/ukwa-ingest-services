@@ -54,7 +54,7 @@ services:
   hdfs-exporter:
     image: ukwa/hdfs-exporter
     ports: 
-     - 9118:9118
+     - 9117:9118
     environment:
      - "HDFS_HEALTH_PAGE=http://194.66.232.90:50070/dfshealth.jsp"
 
