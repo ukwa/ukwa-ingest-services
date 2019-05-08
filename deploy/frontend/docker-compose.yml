@@ -1,29 +1,10 @@
 version: '3.2'
 
 services:
-  # OpenWayback for QA
-  openwayback:
-    image: ukwa/waybacks
-    ports:
-      - "9080:8080"
-      - "8090:8090"
-    environment:
-      - "UKWA_OWB_VERSION=qa"
-      - "WAYBACK_URL_PORT=8080"
-      - "WAYBACK_PROXY_PORT=8090"
-      - "CDX_WHITELIST="
-      - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
-      - "WAYBACK_EMBARGO=0"
-      - "WAYBACK_HTTPFS_PREFIX=http://192.168.45.13:14000/webhdfs/v1"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:8080/data-heritrix"
-      - "WAYBACK_URL_PREFIX=${W3ACT_SERVER_NAME}/act"
-      - "WAYBACK_URL_HOST=${INTERNAL_IP}"
 
   # PyWB for QA
   pywb:
-    image: ukwa/ukwa-pywb
-    ports:
-      - "7080:8080"
+    image: ukwa/ukwa-pywb:1.0.5
     environment:
       WEBHDFS_USER: "access"
       UKWA_INDEX: "xmlquery+http://192.168.45.21:8080/data-heritrix"
@@ -39,8 +20,6 @@ services:
     image: nginx:1.13-alpine
     volumes:
       - ${PYWB_NGINX_CONF}:/etc/nginx/conf.d/pywb.conf:ro
-    ports:
-      - "8100:8100"
     depends_on:
       - pywb
 
@@ -48,15 +27,21 @@ services:
   # PDF to HTML service
   pdf2htmlex:
     image: ukwa/pdf2htmlex:1.0.1
-    ports:
-      - "5005:5000"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: '2G'
     depends_on:
-      - openwayback
+      - nginx
+      - pywb
 
   # W3ACT
   w3act:
     image: ukwa/w3act:${W3ACT_VERSION}
+    command: /w3act/bin/w3act -J-Xmx4g -J-XX:+ExitOnOutOfMemoryError -Dconfig.file=/w3act/conf/docker.conf -Dpidfile.path=/dev/null
     environment:
+      - "APPLICATION_NAVBAR_COLOR=${APPLICATION_NAVBAR_COLOR}"
       - "APPLICATION_SECRET=${APPLICATION_SECRET}"
       - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
       - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
@@ -80,9 +65,10 @@ services:
       - "${DDHAPT_EBOOKS_SUBMISSION_DIR}:/opt/data/w3act/ebooks:shared"
       - "${DDHAPT_EJOURNALS_SUBMISSION_DIR}:/opt/data/w3act/ejournals:shared"
     ports:
-      - "9000:9000"
+      - "${W3ACT_PORT}:9000"
     depends_on:
-      - openwayback
+      - nginx
+      - pywb
       - pdf2htmlex
     extra_hosts:
       - "blsps.ad.bl.uk:194.66.238.125"
@@ -99,7 +85,7 @@ services:
       - "POSTGRES_USER=w3act"
       - "POSTGRES_PASSWORD=${W3ACT_PSQL_PASSWORD}"
     ports:
-      - "5433:5432"
+      - "${POSTGRES_PORT}:5432"
     volumes:
       - "${W3ACT_PSQL_DIR}:/var/lib/postgresql/data"
 
