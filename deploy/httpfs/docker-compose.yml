@@ -29,7 +29,7 @@ services:
       - "1937:1936" # For monitoring/stats
     environment:
       - "BALANCE=roundrobin"
-      - "TIMEOUT=connect 10s, client 1m, server 1m"
+      - "TIMEOUT=connect 30s, client 10m, server 10m"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
@@ -44,11 +44,19 @@ services:
   metrics:
     image: quay.io/prometheus/haproxy-exporter
     ports:
-      - '9102:9101'
+      - '9101:9101'
     command:
       - "--haproxy.scrape-uri=http://stats:stats@lb:1936/;csv"
     networks:
       - httpfsnet
+
+  # Also export HDFS stats scraped from the front page:
+  hdfs-exporter:
+    image: ukwa/hdfs-exporter
+    ports: 
+     - 9117:9118
+    environment:
+     - "HDFS_HEALTH_PAGE=http://194.66.232.90:50070/dfshealth.jsp"
 
 
 # The auto-configuring HAProxy system appears to require that each proxied service runs in a dedicated virtual network

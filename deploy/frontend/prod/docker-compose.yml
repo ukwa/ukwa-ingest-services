@@ -1,0 +1,62 @@
+version: '2'
+
+services:
+  # OpenWayback for QA
+  openwayback:
+    image: ukwa/waybacks
+    ports:
+      - "${INTERNAL_IP}:9080:8080"
+      - "${INTERNAL_IP}:8090:8090"
+    environment:
+      - "UKWA_OWB_VERSION=qa"
+      - "WAYBACK_URL_PORT=8080"
+      - "WAYBACK_PROXY_PORT=8090"
+      - "CDX_WHITELIST="
+      - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
+      - "WAYBACK_EMBARGO=0"
+
+  # PDF to HTML service
+  pdf2htmlex:
+    image: ukwa/pdf2htmlex:1.0.1
+    ports:
+      - "${INTERNAL_IP}:5005:5000"
+    links:
+      - openwayback
+
+  # W3ACT
+  w3act:
+    image: ukwa/w3act:2.0.8
+    environment:
+      - "APPLICATION_SECRET=${APPLICATION_SECRET}"
+      - "SECRET_SERVER_USER=${SECRET_SERVER_USER}"
+      - "SECRET_SERVER_PASSWORD=${SECRET_SERVER_PASSWORD}"
+      - "DB_DRIVER=org.postgresql.Driver"
+      - "DB_URI=postgres://w3act:${W3ACT_PSQL_PASSWORD}@postgres/w3act"
+      - "USE_TEST_DATA=false"
+      - "ENABLE_DDHAPT=true"
+      - "SMTP_SERVER=juno.bl.uk"
+      - "WAYBACK_URL=http://openwayback:8080/wayback"
+      - "MONITRIX_URI=http://monitrix:5601/app/kibana"
+      - "PDFTOHTMLEX_URI=http://pdf2htmlex:5000/convert?url="
+      - "AMQP_HOST=amqp"
+    ports:
+      - "${INTERNAL_IP}:9000:9000"
+    links:
+      - openwayback
+      - pdf2htmlex
+    extra_hosts:
+      - "blsps.ad.bl.uk:194.66.238.125"
+      - "pii.ad.bl.uk:172.16.101.47" 
+      - "v8b-dlsebk01.ad.bl.uk:192.168.242.115"
+      - "v8b-dlseco01.ad.bl.uk:192.168.242.107"
+      - "piiirc.ad.bl.uk:192.168.225.236"
+      - "crawler03.bl.uk:127.0.0.1"
+
+  # PostgreSQL
+  postgres:
+    image: postgres:9.6.2
+    environment:
+      - "POSTGRES_USER=w3act"
+      - "POSTGRES_PASSWORD=${W3ACT_PSQL_PASSWORD}"
+    ports:
+      - "5432:5432"
