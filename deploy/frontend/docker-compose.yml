@@ -21,6 +21,8 @@ services:
     image: nginx:1.13-alpine
     volumes:
       - ${PYWB_NGINX_CONF}:/etc/nginx/conf.d/pywb.conf:ro
+    ports:
+      - "${WAYBACK_PORT}:8100"
     depends_on:
       - pywb
 
