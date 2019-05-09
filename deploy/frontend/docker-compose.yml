@@ -16,6 +16,7 @@ services:
   # NGINX for PYWB
   # To ensure pywb gets proxied behind the right location, we use
   # this NGINX instance to set the deployment scheme, hostname and path
+  # (unfortunately there does not seem to be a way to tell pywb this directly)
   nginx:
     image: nginx:1.13-alpine
     volumes:
@@ -88,6 +89,6 @@ services:
       - "${POSTGRES_PORT}:5432"
     volumes:
       - "${W3ACT_PSQL_DIR}:/var/lib/postgresql/data"
-
+      - "/data/prod/postgresql-backups:/var/lib/postgresql/backups"
 
 
