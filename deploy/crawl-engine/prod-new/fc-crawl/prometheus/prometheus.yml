@@ -12,10 +12,17 @@ scrape_configs:
     static_configs:
       - targets: ['kafka:7071']
 
-  - job_name: 'heritrix-workers'
+  - job_name: 'npld-heritrix-workers'
     dns_sd_configs:
     - names:
-      - 'tasks.heritrix-worker'
+      - 'tasks.npld-heritrix-worker'
+      type: 'A'
+      port: 9118
+
+  - job_name: 'bypm-heritrix-workers'
+    dns_sd_configs:
+    - names:
+      - 'tasks.bypm-heritrix-worker'
       type: 'A'
       port: 9118
 

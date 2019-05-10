@@ -10,6 +10,12 @@ The production crawler setup is split into multiple stacks.
 
     $ docker swarm init --advertise-addr 192.168.45.15
 
+The crawler needs to be in public DNS, so lookups get back to us.
+
+The crawler needs a few firewall ports opening up.
+
+
+
 fc-kafka
 
 
@@ -24,4 +30,6 @@ mkdir /mnt/gluster/fc/kafka
 
 
 
+
+     docker run --network="host" ukwa/ukwa-manage submit -k ${CRAWL_HOST_INTERNAL_IP}:9094 -L now  -S fc.tocrawl.npld http://acid.matkelly.com/
 

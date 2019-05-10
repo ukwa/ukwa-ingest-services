@@ -34,12 +34,12 @@ services:
       LOG_RETENTION_BYTES: -1
       NUM_PARTITIONS: 32
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
-      KAFKA_CREATE_TOPICS: "fc.npld.to-crawl:16:1,fc.by.to-crawl:16:1,fc.crawled:16:1"
+      #KAFKA_CREATE_TOPICS: "fc.tocrawl.npld:16:1,fc.tocrawl.bypm:16:1,fc.crawled:16:1"
+      # Integrate with Prometheus - note that this interferes with the create-topics script so may need to be disabled when first creating the topics:
+      KAFKA_JMX_OPTS: "-javaagent:/prom-jmx/jmx_prometheus_javaagent-0.10.jar=7071:/prom-jmx/prom-jmx-agent-config-kafka.yml"
       # persistent files are in consistent locations, each server supplies a /kafka folder.
       KAFKA_BROKER_ID: 1
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-1
-      # Integrate with Prometheus - note that this interferes with the create-topics script so may need to be disabled when first creating the topics:
-      KAFKA_JMX_OPTS: "-javaagent:/prom-jmx/jmx_prometheus_javaagent-0.10.jar=7071:/prom-jmx/prom-jmx-agent-config-kafka.yml"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${STORAGE_PATH}/kafka:/kafka
@@ -51,7 +51,7 @@ services:
 
 
   # Kafka UI
-  kafka-ui:
+  ui:
     image: ukwa/docker-trifecta
     ports:
       - "9000:9000"
@@ -60,4 +60,10 @@ services:
     depends_on:
       - zookeeper
       - kafka
+
+networks:
+  # Allow attachment of transient containers, external monitoring:
+  default:
+    driver: overlay
+    attachable: true
 
