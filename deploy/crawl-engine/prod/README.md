@@ -1,42 +1,35 @@
-Production setup
-================
+Frequent Crawler Production Setup
+---------------------------------
 
-Crawls should generally be launched at appropriate times via cron. e.g. This starts (or restarts) the daily crawl stream:
+The production crawler setup is split into multiple stacks.
+
+- `fc-kafka` runs the Kafka service for frequent crawling.
+- `fc-crawl` runs the crawls (requires `fc-kafka` to be running).
+- `fc-wb` runs a (optional) Wayback access point to look at the crawl results.
 
 
-    cd pulse/pulse-deploy/prod
-    ./docker-prod.sh exec shepherd pulse start daily
+    $ docker swarm init --advertise-addr 192.168.45.15
 
-This uses the `docker-prod.sh` helper script, which makes sure the correct Docker Compose files are used and loads the correct environment variables
+The crawler needs to be in public DNS, so lookups get back to us.
 
-In the case of a planned system shutdown, the following will stop and checkpoint all the crawlers...
+The crawler needs a few firewall ports opening up.
 
-    ./docker-prod.sh exec shepherd pulse stop daily
-    ./docker-prod.sh exec shepherd pulse stop weekly
-    ./docker-prod.sh exec shepherd pulse stop monthly
-    ./docker-prod.sh exec shepherd pulse stop quarterly
-    ./docker-prod.sh exec shepherd pulse stop sixmonthly
-    ./docker-prod.sh exec shepherd pulse stop annual
 
-Note that a 'neat' shutdown may take a while as it waits for each downloader ToeThread to finish.
 
-Once those tasks have completed, the containers can be shut down:
+fc-kafka
 
-    ./docker-prod.sh down
 
-For unplanned outages, note that the crawlers all checkpoint every four hours, so even a hard shutdown can usually be resumed.
+    $ docker stack deploy -c docker-compose.yml fc_kafka
 
-After the machine comes up again, first start all the services:
+```
+mkdir /mnt/gluster/fc/zookeeper
+mkdir /mnt/gluster/fc/zookeeper/data
+mkdir /mnt/gluster/fc/zookeeper/datalog
+mkdir /mnt/gluster/fc/kafka
+```
 
-    ./docker-prod.sh up -d
 
-Once everything is running, we can resume the crawls from the last checkpoint using the `resume` command:
 
-    ./docker-prod.sh exec shepherd pulse resume daily
-    ./docker-prod.sh exec shepherd pulse resume weekly
-    ./docker-prod.sh exec shepherd pulse resume monthly
-    ./docker-prod.sh exec shepherd pulse resume quarterly
-    ./docker-prod.sh exec shepherd pulse resume sixmonthly
-    ./docker-prod.sh exec shepherd pulse resume annual
 
+     docker run --network="host" ukwa/ukwa-manage submit -k ${CRAWL_HOST_INTERNAL_IP}:9094 -L now  -S fc.tocrawl.npld http://acid.matkelly.com/
 
