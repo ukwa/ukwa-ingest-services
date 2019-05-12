@@ -91,7 +91,7 @@ services:
 
   # PhantomJS web page rendering service
   webrender:
-    image: ukwa/webrender-api:1.0.5
+    image: ukwa/webrender-api:1.0.6
     ports:
       - 8010:8010
     environment:
@@ -126,7 +126,7 @@ services:
       - '--storage.tsdb.path=/prometheus'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--web.external-url=http://${CRAWLER_HOST_LAN_IP}:9191/'
+      - '--web.external-url=http://${CRAWL_HOST_LAN_IP}:9191/'
       - '--web.enable-admin-api'
       - '--web.enable-lifecycle'
 
