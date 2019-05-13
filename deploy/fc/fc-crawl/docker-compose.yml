@@ -129,6 +129,9 @@ services:
       - '--web.external-url=http://${CRAWL_HOST_LAN_IP}:9191/'
       - '--web.enable-admin-api'
       - '--web.enable-lifecycle'
+    networks:
+      - default
+      - kafka
 
 networks:
   # Allow attachment of transient web-render containers, external monitoring:
