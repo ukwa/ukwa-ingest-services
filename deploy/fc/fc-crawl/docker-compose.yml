@@ -102,7 +102,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # For launching containerised renderers
       - /tmp/webrender:/tmp/webrender
-#      - "./webrender-gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
+      - "./webrender-gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
     deploy:
       replicas: 1
     depends_on:
