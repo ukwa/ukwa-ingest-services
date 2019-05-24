@@ -8,17 +8,18 @@ services:
   # Needs a Zookeeper too
   # ----
   zookeeper:
-    image: wurstmeister/zookeeper
+    image: zookeeper:3.4
     ports:
       - 2181:2181
     volumes:
-      - /data/dc/kafka/zookeeper-data:/opt/zookeeper-3.4.9/data
+      - ${STORAGE_PATH}/zookeeper/data:/data
+      - ${STORAGE_PATH}/zookeeper/datalog:/datalog
 
   #
   # Kafka Broker Setup:
   #
   kafka-1:
-    image: wurstmeister/kafka:1.1.0
+    image: wurstmeister/kafka:2.12-2.1.0
     ports:
       - target: 9094
         published: 9094
@@ -39,14 +40,15 @@ services:
       KAFKA_NUM_PARTITIONS: 32
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
       LOG4J_LOGGER_KAFKA: WARN
+      # For monitoring via Prometheus:
+      KAFKA_JMX_OPTS: "-javaagent:/prom-jmx/jmx_prometheus_javaagent-0.10.jar=7071:/prom-jmx/prom-jmx-agent-config-kafka.yml"
       # persistent files are in consistent locations, each server supplies a /kafka folder.
       KAFKA_BROKER_ID: 1
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-1
-      # CREATE this topic on this node
-      KAFKA_CREATE_TOPICS: "uris.tocrawl.dc:256:1 --config=compression.type=snappy"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /data/dc/kafka/kafka-logs-broker-1:/kafka/kafka-logs/kafka-logs-broker-1
+      - ${STORAGE_PATH}/kafka/kafka-logs-broker-1:/kafka/kafka-logs/kafka-logs-broker-1
+      - ${STORAGE_PATH}/prom-jmx/:/prom-jmx
     deploy:
       replicas: 1
       placement:
@@ -54,7 +56,7 @@ services:
 
   # Second Kafka instance
   kafka-2:
-    image: wurstmeister/kafka:1.1.0
+    image: wurstmeister/kafka:2.12-2.1.0
     ports:
       - target: 9094
         published: 9094
@@ -75,21 +77,22 @@ services:
       KAFKA_NUM_PARTITIONS: 32
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
       LOG4J_LOGGER_KAFKA: WARN
+      # For monitoring:
+      KAFKA_JMX_OPTS: "-javaagent:/prom-jmx/jmx_prometheus_javaagent-0.10.jar=7071:/prom-jmx/prom-jmx-agent-config-kafka.yml"
       # persistent files are in consistent locations, each server supplies a /kafka folder.
       KAFKA_BROKER_ID: 2
       KAFKA_LOG_DIRS: /kafka/kafka-logs/kafka-logs-broker-2
-      # CREATE this topic on this node
-      KAFKA_CREATE_TOPICS: "uris.crawled.dc:64:1 --config=compression.type=snappy,uris.discarded.dc:256:1 --config=compression.type=snappy"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - /data/dc/kafka/kafka-logs-broker-2:/kafka/kafka-logs/kafka-logs-broker-2
+      - ${STORAGE_PATH}/kafka/kafka-logs-broker-2:/kafka/kafka-logs/kafka-logs-broker-2
+      - ${STORAGE_PATH}/prom-jmx/:/prom-jmx
     deploy:
       replicas: 1
       placement:
         constraints: [node.hostname == crawler01.bl.uk]
 
   # Kafka UI
-  kafka-ui:
+  ui:
     image: ukwa/docker-trifecta
     ports:
       - "9000:9000"
@@ -97,5 +100,12 @@ services:
       - "ZK_HOST=zookeeper:2181"
     depends_on:
       - zookeeper
+      - kafka-1
+      - kafka-2
 
+networks:
+  # Allow attachment of transient containers, external monitoring:
+  default:
+    driver: overlay
+    attachable: true
 
