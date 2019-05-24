@@ -12,10 +12,9 @@ services:
     ports:
       - 8001:8000
     environment:
-      - "WARC_PATHS=/heritrix/output,/heritrix/wren"
+      - "WARC_PATHS=/heritrix/output"
     volumes:
-      - /data/dc/heritrix/output:/heritrix/output
-      - /data/dc/heritrix/wren:/heritrix/wren
+      - ${STORAGE_PATH}/heritrix/output:/heritrix/output
 
   # OpenWayback instance:
   openwayback:
@@ -31,7 +30,7 @@ services:
       - "WAYBACK_EXCLUDE_FILE=/usr/local/tomcat/webapps/ROOT/WEB-INF/classes/exclude.txt"
       - "WAYBACK_EMBARGO=0"
       - "WAYBACK_HTTPFS_PREFIX=http://warc-server:8000/by-filename/"
-      - "CDX_INDEX_SERVER=http://192.168.45.21:9090/dc-2018-1"
+      - "CDX_INDEX_SERVER=${CDXSERVER_ENDPOINT}"
       - "WAYBACK_URL_PREFIX=http://${EXTERNAL_HOSTNAME}:8080"
       - "WAYBACK_URL_HOST=${EXTERNAL_HOSTNAME}"
 
@@ -42,6 +41,6 @@ services:
       - "8081:8080"
     environment:
       - "WEBHDFS_USER=access"
-      - "UKWA_INDEX=xmlquery+http://192.168.45.21:9090/dc-2018-1"
+      - "UKWA_INDEX=xmlquery+${CDXSERVER_ENDPOINT}"
       - "UKWA_ARCHIVE=webhdfs://warc-server:8000/by-filename/"
 

@@ -59,9 +59,10 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=1000d'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
-      - '--web.external-url=http://crawler04.bl.uk:9191/'
+      - '--web.external-url=http://${EXTERNAL_HOSTNAME}:9191/'
       - '--web.enable-admin-api'
       - '--web.enable-lifecycle'
     networks:
