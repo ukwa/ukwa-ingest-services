@@ -1,0 +1,15 @@
+
+version: "3.2"
+
+services:
+  
+  # OutbackCDX Service:
+  cdxserver:
+    image: nlagovau/outbackcdx:0.5.1
+    ports:
+      - "9191:8080"
+    volumes:
+      - /opt/data/cdx-v051:/cdx-data
+
+
+
