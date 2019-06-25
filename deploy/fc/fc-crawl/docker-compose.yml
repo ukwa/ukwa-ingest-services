@@ -11,6 +11,7 @@ services:
     env_file: heritrix-shared-settings.env
     environment:
       - "KAFKA_TOCRAWL_TOPIC=fc.tocrawl.npld"
+      - "KAFKA_INSCOPE_TOPIC=fc.inscope.npld"
       - "KAFKA_CANDIDATES_TOPIC=fc.tocrawl.npld"
       - "CRAWL_NAME=frequent-npld"
       - "WARC_PREFIX=BL-NPLD"
@@ -38,6 +39,7 @@ services:
     env_file: heritrix-shared-settings.env
     environment:
       - "KAFKA_TOCRAWL_TOPIC=fc.tocrawl.bypm"
+      - "KAFKA_INSCOPE_TOPIC=fc.inscope.bypm"
       - "KAFKA_CANDIDATES_TOPIC=fc.tocrawl.bypm"
       - "CRAWL_NAME=frequent-bypm"
       - "WARC_PREFIX=BL-BYPM"
@@ -92,8 +94,8 @@ services:
   # PhantomJS web page rendering service
   webrender:
     image: ukwa/webrender-api:1.0.6
-    ports:
-      - 8010:8010
+    #ports:
+    #  - 8010:8010
     environment:
       - "WARCPROX=warcprox:8000"
       - "LC_ALL=en_US.utf8"
@@ -105,6 +107,7 @@ services:
       - "./webrender-gunicorn.ini:/webrender/gunicorn.ini" # Override render server configuration
     deploy:
       replicas: 1
+      endpoint_mode: dnsrr # Use this to avoid the Ingress network, as it appears to forcibly reset long-running connections.
     depends_on:
       - warcprox
 
