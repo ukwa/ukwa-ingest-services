@@ -1,0 +1,40 @@
+
+version: '3.2'
+
+services:
+
+  # PostgreSQL
+  psqldb:
+    image: postgres:11.1
+    environment:
+      - "POSTGRES_USER=crawl-db"
+      - "POSTGRES_PASSWORD=crawl-db"
+      - "POSTGRES_DB=crawl_db"
+    ports:
+      - "5432:5432"
+    volumes:
+      - "/opt/data/crawl-db/postgresql:/var/lib/postgresql/data"
+      - "/opt/data/crawl-db/postgresql-in-out-box:/var/lib/postgresql/in-out-box"
+
+   # A UI for poking around in PostgreSQL:
+  psqldb-ui:
+    image: dpage/pgadmin4
+    environment:
+      - "PGADMIN_DEFAULT_EMAIL=wa-sysadm@bl.uk"
+      - "PGADMIN_DEFAULT_PASSWORD=access"
+    ports:
+      - 90:80
+
+  # CockroachDB
+  crdb:
+    image: cockroachdb/cockroach:v19.1.1
+    command: start --cache=.25 --max-sql-memory=.25 --logtostderr --insecure --advertise-host=192.168.45.21 --http-host=0.0.0.0
+    ports:
+      - "18080:8080"
+      - "26257:26257"
+    volumes:
+      - /opt/data/cockroachdb:/cockroach/cockroach-data
+    deploy:
+      replicas: 1
+    stop_grace_period: 60s
+

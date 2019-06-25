@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+
+rsync -av --delete --dry-run /opt/data/cdx/data-heritrix	/opt/data/cdx-v051/
+#rsync -av --delete /opt/data/cdx-v040/fc	/opt/data/cdx-v051/

@@ -23,6 +23,7 @@ services:
       - "${STORAGE_PATH}/surts/npld:/shared" # Shared configuration - surts file held here.
     deploy:
       replicas: 1
+    stop_grace_period: 2m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - clamd
       - webrender
@@ -51,6 +52,7 @@ services:
       - "${STORAGE_PATH}/surts/bypm:/shared" # Shared configuration - surts file held here.
     deploy:
       replicas: 1
+    stop_grace_period: 2m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - clamd
       - webrender
@@ -127,6 +129,7 @@ services:
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=1000d'
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
       - '--web.external-url=http://${CRAWL_HOST_LAN_IP}:9191/'
