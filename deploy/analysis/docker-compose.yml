@@ -1,17 +1,42 @@
 version: '3.2'
 
-# Note that trying to add the warc-base jar in ahead of time seems to cause issues with JAR-hell verison conflicts.
-
 services:
 
-  jupyter:
-    image: jupyter/all-spark-notebook
-    command: "start-notebook.sh --NotebookApp.token='' --NotebookApp.base_url=/ukwa/jupyter"
+#  jupyter:
+#    image: jupyter/all-spark-notebook
+#    command: "start-notebook.sh --NotebookApp.token=''"
+#    ports:
+#      - "18888:8888"
+#    volumes:
+#      - /data:/home/jovyan/data
+
+  jupyterhub:
+    image: ukwa/jupyterhub
+    command: "jupyterhub -f /srv/jupyterhub_config/jupyterhub_config.py --no-ssl"
     ports:
-      - "8889:8888"
+      - "8000:8000"
+      - "8001:8001"
+    environment:
+      - "DOCKER_HOST="
+      - "DOCKER_NETWORK_NAME=jp_jupyterhub_network"
+    # Ensure Hub and Notebook servers are on the same network
+    hostname: jupyterhub
+    networks:
+      - jupyterhub_network
     volumes:
-      - /data:/home/jovyan/data
-      - /mnt/gluster/wa/:/home/jovyan/report-data
-      - /root/github/ukwa-manage:/home/jovyan/ukwa-manage
-      - /var/task-state:/home/jovyan/task-state
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /data/shared:/usr/local/shared/jupyter
+      - /data/jupyterhub/jupyterhub_config.py:/srv/jupyterhub_config/jupyterhub_config.py
+      - /etc/passwd:/etc/passwd
+      - /etc/shadow:/etc/shadow
+      - /etc/group:/etc/group
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.role == manager
+
+networks:
+   jupyterhub_network:
+      driver: overlay
 
