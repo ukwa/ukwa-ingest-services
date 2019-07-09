@@ -13,7 +13,17 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - "/data/ingest-task-db/postgresql:/var/lib/postgresql/data"
-      - "/data/ingest-task-db/postgresql-in-out-box:/var/lib/postgresql/in-out-box"
+      - "/mnt/gluster/ingest/ingest-task-db/postgresql:/var/lib/postgresql/data"
+      - "/mnt/gluster/ingest/ingest-task-db/postgresql-in-out-box:/var/lib/postgresql/in-out-box"
+
+  # A UI for poking around in PostgreSQL:
+  db-ui:
+    image: dpage/pgadmin4
+    environment:
+      - "PGADMIN_DEFAULT_EMAIL=wa-sysadm@bl.uk"
+      - "PGADMIN_DEFAULT_PASSWORD=ingest"
+    ports:
+      - 90:80
+
 
 
