@@ -23,7 +23,7 @@ services:
       - "${STORAGE_PATH}/surts/npld:/shared" # Shared configuration - surts file held here.
     deploy:
       replicas: 1
-    stop_grace_period: 2m # Give the H3 instances some time to shut down neatly following SIGTERM
+    stop_grace_period: 10m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - clamd
       - webrender
@@ -52,7 +52,7 @@ services:
       - "${STORAGE_PATH}/surts/bypm:/shared" # Shared configuration - surts file held here.
     deploy:
       replicas: 1
-    stop_grace_period: 2m # Give the H3 instances some time to shut down neatly following SIGTERM
+    stop_grace_period: 5m # Give the H3 instances some time to shut down neatly following SIGTERM
     depends_on:
       - clamd
       - webrender
@@ -95,7 +95,7 @@ services:
 
   # PhantomJS web page rendering service
   webrender:
-    image: ukwa/webrender-api:1.0.6
+    image: ukwa/webrender-api:1.0.10
     #ports:
     #  - 8010:8010
     environment:
@@ -103,6 +103,7 @@ services:
       - "LC_ALL=en_US.utf8"
       - "WEB_RENDER_TMP=/tmp/webrender"
       - "DOCKER_NETWORK=fc_crawl_default"
+      - "DOCKER_RENDERER_IMAGE=ukwa/webrender-puppeteer:1.0.3"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock # For launching containerised renderers
       - /tmp/webrender:/tmp/webrender
