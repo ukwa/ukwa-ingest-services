@@ -5,5 +5,6 @@ export STORAGE_PATH=/mnt/gluster/fc
 # Oddly slow...
 #export CDXSERVER_ENDPOINT=http://crawldb-fc.api.wa.bl.uk/fc
 export CDXSERVER_ENDPOINT=http://192.168.45.8:8081/fc
-export HERITRIX_VERSION=2.7.0-BETA-3
+#export HERITRIX_VERSION=2.7.0-BETA-3
+export HERITRIX_VERSION=2.7.2
 
